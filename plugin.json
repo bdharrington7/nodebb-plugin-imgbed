@@ -1,0 +1,14 @@
+{
+	"id": "nodebb-plugin-imgbed",
+	"name": "NodeBB Image embedding plugin",
+	"description": "Embeds images into a post with just an image url.",
+	"url": "https://github.com/bdharrington7/nodebb-plugin-imgbed",
+	"library": "./library.js", 
+	"hooks": [
+		{
+			"hook": "filter:post.parse",
+			"method": "parse",
+			"callbacked": true
+		}
+	]
+}
