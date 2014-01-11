@@ -1,0 +1,27 @@
+{
+  "name": "nodebb-plugin-imgbed",
+  "version": "0.0.1",
+  "description": "Converts image urls to embedded images"
+  "main": "library.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed"
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "image",
+    "embedding"
+  ],
+  "author": "Brian Harrington <BDHarrington7@gmail.com>"
+  "license": "LGPL",
+  "bugs": {
+    "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed/issues"
+  },
+  "dependencies": {
+    "xregexp": "~2.0.0"
+  }
+}
