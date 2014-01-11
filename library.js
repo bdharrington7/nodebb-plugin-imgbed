@@ -10,7 +10,7 @@ var regex = XRegExp(regexStr, 'gi');
 
 Imgbed.parse = function(postContent, callback){
 	if (postContent.match(regex)){
-		postContent = postContent.replace(regex, '<img src="$1" class="mine">');
+		postContent = postContent.replace(regex, '<img src="$1" alt="$1">');
 	}
 	callback(null, postContent);
 }

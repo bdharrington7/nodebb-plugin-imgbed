@@ -8,7 +8,8 @@
 		{
 			"hook": "filter:post.parse",
 			"method": "parse",
-			"callbacked": true
+			"callbacked": true,
+			"priority": 6
 		}
 	]
 }
