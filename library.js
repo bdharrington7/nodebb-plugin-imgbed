@@ -5,11 +5,11 @@ var		fs = require('fs'),
 		path = require('path'),
 		templates = module.parent.require('../public/src/templates.js');
 
-var contants = Object.freeze({
-	"name": "Imgbed Admin Page",
+var constants = Object.freeze({
+	"name": "Imgbed",
 	"admin": {
 		"route": "/imgbed",
-		"icon": "icon-heart" // TODO: change this to something that makes more sense
+		"icon": "fa-th-large"
 	}
 });
 
@@ -30,16 +30,18 @@ Imgbed.parse = function(postContent, callback){
 
 Imgbed.registerPlugin = function(custom_header, callback){
 	custom_header.plugins.push({
-		"route": contants.admin.route,
-		"icon": contants.admin.icon,
-		"name": contants.name
+		"route": constants.admin.route,
+		"icon": constants.admin.icon,
+		"name": constants.name
 	});
+
+	return custom_header;
 }
 
 Imgbed.addRoute = function(custom_routes, callback){
 	fs.readFile(path.resolve(__dirname, "./public/templates/admin.tpl"), function (err, template){
 		custom_routes.routes.push({
-			"route": contants.admin.route,
+			"route": constants.admin.route,
 			"method": "get",
 			"options": function (req, res, callback) {
 				callback({

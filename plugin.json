@@ -6,6 +6,8 @@
 	"library": "./library.js", 
 	"staticDir": "./public",
 	"hooks": [
-		{ "hook": "filter:post.parse", "method": "parse", "callbacked": true, "priority": 6 }
+		{ "hook": "filter:post.parse", "method": "parse", "callbacked": true, "priority": 6 },
+		{ "hook": "filter:admin.header.build", "method": "registerPlugin", "callbacked": false },
+		{ "hook": "filter:admin.create_routes", "method": "addRoute", "callbacked": true }
 	]
 }

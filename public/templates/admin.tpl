@@ -9,7 +9,7 @@
 			Upload linked pictures automatically to the forum server
 		</label>
 		<div class="alert alert-warning">
-			<strong><i class="icon-warning-sign"></i> Careful!</strong>
+			<strong><i class="fa-warning-sign"></i> Careful!</strong>
 			<p>
 				Make sure you have enough disk space and bandwidth on your server before you enable this.
 			</p>
@@ -18,7 +18,7 @@
 	<!-- TODO: make group to choose between uploading to the server, or imgur -->
 	<div class="form-group">
 		<label for="extensions">
-			Prefix for <code>code</code> blocks
+			Allowed Extensions (comma separated)
 		</label>
 		<input class="form-control" placeholder="jpeg,jpg,gif,png" type="text" data-field="nodebb-plugin-imgbed:options:extensions" id="extensions" />
 	</div>
