@@ -3,6 +3,7 @@
 // stuff for the admin panel
 var		fs = require('fs'),
 		path = require('path'),
+		mkdirp = require('mkdirp'),
 		templates = module.parent.require('../public/src/templates.js');
 
 var constants = Object.freeze({
@@ -13,17 +14,62 @@ var constants = Object.freeze({
 	}
 });
 
+var uploadHotlinks = meta.config['nodebb-plugin-imgbed:options:upload'],
+	userExt = meta.config['nodebb-plugin-imgbed:options:extensions'],
+	uploadUrl = path.resolve(__dirname, "uploads/imgbed/"); // __dirname points to the plugin root
+
+
+fs.exists(uploadUrl, function(exists){
+	if(!exists){
+		console.log(constants.name + ": Path doesn't exist, creating...");
+		mkdirp(uploadUrl, function(err){
+			if (err){
+				console.log(constants.name + ": Error creating directory: " + err);
+			}
+			else {
+				console.log(constants.name + ": Successfully created upload directory!");
+			}
+		});
+		// mkdirp.sync(uploadUrl);
+		console.log(constants.name + ": Done!");
+	}
+	else {
+		console.log(constants.name + ": Path exists");
+	}
+});
+
 var Imgbed = {},
 	XRegExp = require('xregexp').XRegExp,
-	extensions = ['jpg', 'jpeg', 'gif', 'png'],  // add capability for control panel here
-	regexStr = '<a href="(https?://[^\.]+\.[^\/]+\/[^\.]+\.(' + extensions.join('|') + '))">[^<]*<\/a>';
+	extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'png'],  // add capability for control panel here
+	regexStr = '<a href="(?<url>https?://[^\.]+\.[^\/]+\/[^\.]+\.(' + extensions.join('|') + '))">[^<]*<\/a>';
 
 // declare regex as global and case-insensitive
 var regex = XRegExp(regexStr, 'gi');
 
+var dlUrl = function(rawUrl){ //convert the raw url to an upload url on this server
+	if (uploadHotlinks){
+		rawUrl = rawUrl.replace(XRegExp('[^A-Za-z_0-9.-]', 'gi'), '_');
+		return uploadPath + rawUrl;
+	}
+	return rawUrl;
+}
+
 Imgbed.parse = function(postContent, callback){
 	if (postContent.match(regex)){
-		postContent = postContent.replace(regex, '<img src="$1" alt="$1">');
+		if (uploadHotlinks){
+			// check if resource is downloaded already, download if not there
+			if (!fileExists) {  // download
+
+			}
+
+			postContent = XRegExp.replace(postContent, regex, function(match){
+				return match.replace(match.url, dlUrl(match.url));
+			});
+
+		}
+		else {
+			postContent = postContent.replace(regex, '<img src="${url}" alt="${url}">');
+		}
 	}
 	callback(null, postContent);
 }
