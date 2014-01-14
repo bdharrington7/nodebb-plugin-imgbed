@@ -4,6 +4,7 @@
 var		fs = require('fs'),
 		path = require('path'),
 		mkdirp = require('mkdirp'),
+		nconf = module.parent.require('nconf'),
 		templates = module.parent.require('../public/src/templates.js');
 
 var constants = Object.freeze({
@@ -16,12 +17,12 @@ var constants = Object.freeze({
 
 var uploadHotlinks = meta.config['nodebb-plugin-imgbed:options:upload'],
 	userExt = meta.config['nodebb-plugin-imgbed:options:extensions'],
-	uploadUrl = path.resolve(__dirname, "uploads/imgbed/"); // __dirname points to the plugin root
+	uploadUrl = path.join(nconf.get('base_dir'), nconf.get('upload_path'), "imgbed"); // __dirname points to the plugin root
 
 
 fs.exists(uploadUrl, function(exists){
 	if(!exists){
-		console.log(constants.name + ": Path doesn't exist, creating...");
+		console.log(constants.name + ": Path doesn't exist, creating " + uploadUrl);
 		mkdirp(uploadUrl, function(err){
 			if (err){
 				console.log(constants.name + ": Error creating directory: " + err);
@@ -30,11 +31,10 @@ fs.exists(uploadUrl, function(exists){
 				console.log(constants.name + ": Successfully created upload directory!");
 			}
 		});
-		// mkdirp.sync(uploadUrl);
 		console.log(constants.name + ": Done!");
 	}
 	else {
-		console.log(constants.name + ": Path exists");
+		console.log("info: [plugins] " + constants.name + ": Upload path exists");
 	}
 });
 
