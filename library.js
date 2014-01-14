@@ -10,14 +10,15 @@ var		fs = require('fs'),
 var constants = Object.freeze({
 	"name": "Imgbed",
 	"admin": {
-		"route": "/imgbed",
+		"route": "/imgbed/",
 		"icon": "fa-th-large"
 	}
 });
 
 var uploadHotlinks = meta.config['nodebb-plugin-imgbed:options:upload'],
 	userExt = meta.config['nodebb-plugin-imgbed:options:extensions'],
-	uploadUrl = path.join(nconf.get('base_dir'), nconf.get('upload_path'), "imgbed"); // __dirname points to the plugin root
+	uploadUrl = path.join(nconf.get('base_dir'), nconf.get('upload_path'), constants.admin.route), // for creating the dir
+	relativeUrl = "/uploads" + constants.admin.route;
 
 
 fs.exists(uploadUrl, function(exists){
@@ -47,30 +48,32 @@ var Imgbed = {},
 var regex = XRegExp(regexStr, 'gi');
 
 var dlUrl = function(rawUrl){ //convert the raw url to an upload url on this server
-	if (uploadHotlinks){
-		rawUrl = rawUrl.replace(XRegExp('[^A-Za-z_0-9.-]', 'gi'), '_');
-		return uploadPath + rawUrl;
-	}
+	rawUrl = rawUrl.replace(XRegExp('[^A-Za-z_0-9.-]', 'gi'), '_');
+	console.log("dlUrl: " + rawUrl);
 	return rawUrl;
 }
 
 Imgbed.parse = function(postContent, callback){
-	if (postContent.match(regex)){
-		if (uploadHotlinks){
-			// check if resource is downloaded already, download if not there
-			if (!fileExists) {  // download
+	postContent = XRegExp.replace(postContent, regex, function(match){
+		var embedUrl = "";
+		if (uploadHotlinks == 1){ // arg javascript
+			var urlFilename = dlUrl(match.url);
+			// TODO: download the match.url into the upload/imgbed dir with the urlFilename
 
-			}
 
-			postContent = XRegExp.replace(postContent, regex, function(match){
-				return match.replace(match.url, dlUrl(match.url));
-			});
-
+			console.log("Imgbed: " + relativeUrl + urlFilename);
+			embedUrl = relativeUrl + urlFilename; // make an option for FQDN
+			console.log("Uploading: " + embedUrl);
+			console.log(uploadHotlinks);
 		}
 		else {
-			postContent = postContent.replace(regex, '<img src="${url}" alt="${url}">');
+			embedUrl = match.url;
+			console.log("Not Uploading: " + embedUrl);
+			console.log(uploadHotlinks);
 		}
-	}
+		return '<img src="' + embedUrl + '" alt="' + match.url + '">';
+	});
+	
 	callback(null, postContent);
 }
 
