@@ -8,6 +8,7 @@
 	"hooks": [
 		{ "hook": "filter:post.parse", "method": "parse", "callbacked": true, "priority": 6 },
 		{ "hook": "filter:admin.header.build", "method": "registerPlugin", "callbacked": false },
-		{ "hook": "filter:admin.create_routes", "method": "addRoute", "callbacked": true }
+		{ "hook": "filter:admin.create_routes", "method": "addRoute", "callbacked": true },
+		{ "hook": "filter:scripts.get", "method": "getScripts", "callbacked": false }
 	]
 }

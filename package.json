@@ -25,6 +25,6 @@
   "dependencies": {
     "xregexp": "~2.0.0",
     "path": "~1.1.36",
-    "mkdirp": "~1.1.36"
+    "mkdirp": "~0.3.0"
   }
 }

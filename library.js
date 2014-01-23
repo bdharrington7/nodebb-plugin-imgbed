@@ -5,7 +5,8 @@
 	var		fs = require('fs'),
 			path = require('path'),
 			mkdirp = require('mkdirp'),
-			exec = require('child_process').exec,
+			io = require('socket.io').listen(4568),
+			//exec = require('child_process').exec,
 			spawn = require('child_process').spawn,
 			nconf = module.parent.require('nconf'),
 			winston = require('winston'),
@@ -26,6 +27,7 @@
 		wgetUploadPath = path.join(nconf.get('upload_path'), constants.admin.route);
 
 
+	// check to see if the uploads path exists, create it if not there
 	fs.exists(uploadUrl, function(exists){
 		if(!exists){
 			winston.info(constants.name + ": Path doesn't exist, creating " + uploadUrl);
@@ -43,6 +45,7 @@
 			winston.info("[plugins] " + constants.name + ": Upload path exists");
 		}
 	});
+
 
 	var Imgbed = {},
 		XRegExp = require('xregexp').XRegExp,
@@ -69,15 +72,21 @@
 			var fullRelPath = relativeUrl + cleanFn;
 			var fullWgetPath = path.join('.', wgetUploadPath, cleanFn);
 
-			// TODO: download the match.url into the upload/imgbed dir with the urlFilename
+			if (fs.existsSync(fullWgetPath)){
+				
+				console.log("Sync: file exists, returning modified URL");
+				return fullRelPath;
+			}
+
 			fs.exists(fullWgetPath, function(exist){ 
 				if (!exist){
 					console.log ("File not found for " + fullRelPath);
-					// debugger;
-					//fs.openSync(fullWgetPath, 'w'); // touch the file so something exists there before the download finishes
 					var file = fs.createWriteStream( fullWgetPath );
 					var curl = spawn('curl', [rawUrl]);
-					curl.stdout.on('data', function(data) { file.write(data); });
+					curl.stdout.on('data', function(data) { 
+						file.write(data); 
+						sendClient("image downloading");
+					});
 					curl.stdout.on('end', function(data) {
 						file.end();
 						console.log("File downloaded! " + rawUrl);
@@ -87,50 +96,47 @@
 							console.log('Failed: ' + code);
 						}
 					});
-					// var wget = "wget " + rawUrl + " -O " + fullWgetPath;
-					// var child = exec(wget, function (err, stdout, stderr){
-					// 	if (err){
-					// 		console.log(constants.name + ": Error wget-ing " + rawUrl + stderr);
-					// 		console.log(err);
-					// 	}
-					// 	else {
-					// 		console.log(constants.name + ": Successfully downloaded " + rawUrl + stdout);
-					// 	}
-					// });
 				}
 				else {
 					console.log("file exists: " + fullWgetPath);
+					//return fullRelPath + "hello";
 				}
 			});
 			
 			// TODO: setting: max size to download
 
-			return fullRelPath;
+			// return the raw URL anyway. At this point the picture(s) is/are still hotlinked, but will be updated with
+				// the local path upon refresh
+				console.log("END: file doesn't exist, returning original URL");
+				return rawUrl; 
+
+			
 		}
+	}
+
+	var serverSocket;
+	io.sockets.on('connection', function(socket){
+		socket.on('imgbed.client', function(data){
+			console.log("event received from the client!!");
+			console.log(data);
+		});
+		socket.emit('server', { data: "message from the server" });
+		serverSocket = socket;
+		console.log ("serverSocket inside connection: ");
+		console.log(serverSocket);
+	});
+
+	console.log ("serverSocket outside connection: ");
+	console.log(serverSocket);
+
+	var sendClient = function (info){
+		serverSocket.emit('imgbed.server.rcv', { bytes: 1, total: 2, information: info });
 	}
 
 	Imgbed.parse = function(postContent, callback){
 		postContent = XRegExp.replace(postContent, regex, function(match){
-			// var embedUrl = "";
-			// if (uploadHotlinks == 1){ // arg javascript
-			// 	var urlFilename = dlUrl(match.url);
-			// 	// TODO: download the match.url into the upload/imgbed dir with the urlFilename
-
-			// 	// TODO: setting: max size to download
-
-
-			// 	console.log("Imgbed: " + relativeUrl + urlFilename);
-			// 	embedUrl = relativeUrl + urlFilename; // make an option for FQDN
-			// 	console.log("Uploading: " + embedUrl);
-			// 	console.log(uploadHotlinks);
-			// }
-			// else {
-			// 	embedUrl = match.url;
-			// 	console.log("Not Uploading: " + embedUrl);
-			// 	console.log(uploadHotlinks);
-			// }
-			return '<img src="' + getUrl(match.url) + '" alt="' + match.url + '">';
-		});
+				return '<img src="' + getUrl(match.url) + '" alt="' + match.url + '">';
+			});
 		
 		callback(null, postContent);
 	}
@@ -163,6 +169,10 @@
 
 			callback(null, custom_routes);
 		});
+	}
+
+	Imgbed.getScripts = function(scripts, callback){
+		return scripts.concat(['plugins/nodebb-plugin-imgbed/js/imgbed_main.js']);
 	}
 
 	module.exports = Imgbed;
