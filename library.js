@@ -5,11 +5,10 @@
 	var		fs = require('fs'),
 			path = require('path'),
 			mkdirp = require('mkdirp'),
-			io = require('socket.io').listen(4568),
-			//exec = require('child_process').exec,
 			spawn = require('child_process').spawn,
 			nconf = module.parent.require('nconf'),
 			winston = require('winston'),
+			SocketIndex = module.parent.require('./socket.io/index'),
 			templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
@@ -85,7 +84,7 @@
 					var curl = spawn('curl', [rawUrl]);
 					curl.stdout.on('data', function(data) { 
 						file.write(data); 
-						sendClient("image downloading");
+						sendClient("Image downloading: ");
 					});
 					curl.stdout.on('end', function(data) {
 						file.end();
@@ -99,7 +98,6 @@
 				}
 				else {
 					console.log("file exists: " + fullWgetPath);
-					//return fullRelPath + "hello";
 				}
 			});
 			
@@ -114,24 +112,11 @@
 		}
 	}
 
-	var serverSocket;
-	io.sockets.on('connection', function(socket){
-		socket.on('imgbed.client', function(data){
-			console.log("event received from the client!!");
-			console.log(data);
-		});
-		socket.emit('server', { data: "message from the server" });
-		serverSocket = socket;
-		console.log ("serverSocket inside connection: ");
-		console.log(serverSocket);
-	});
-
-	console.log ("serverSocket outside connection: ");
-	console.log(serverSocket);
-
 	var sendClient = function (info){
-		serverSocket.emit('imgbed.server.rcv', { bytes: 1, total: 2, information: info });
+		SocketIndex.server.sockets.emit('event:imgbed.server.rcv', { bytes: 1, total: 2, information: info });
 	}
+
+	sendClient("Send Client working");
 
 	Imgbed.parse = function(postContent, callback){
 		postContent = XRegExp.replace(postContent, regex, function(match){
