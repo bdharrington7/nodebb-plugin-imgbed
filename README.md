@@ -3,7 +3,11 @@ nodebb-plugin-imgbed
 
 Embeds images into a post with just an image url
 
-Upcoming features?
+Features
 ------------------
 * Ability to specify which image extensions are supported
-* Stretch goal: auto-downloading of pictures linked
+* Option to auto-download any hotlinked pictures
+
+Upcoming
+------------------
+* Progress bar

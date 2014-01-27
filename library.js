@@ -21,24 +21,26 @@
 
 	var uploadHotlinks = meta.config['nodebb-plugin-imgbed:options:upload'],
 		userExt = meta.config['nodebb-plugin-imgbed:options:extensions'],
-		uploadUrl = path.join(nconf.get('base_dir'), nconf.get('upload_path'), constants.admin.route), // for creating the dir
 		relativeUrl = "/uploads" + constants.admin.route,
-		wgetUploadPath = path.join(nconf.get('upload_path'), constants.admin.route);
+		wgetUploadPath = path.join('.', nconf.get('upload_path'), constants.admin.route),
+		uploadUrl = path.join(nconf.get('base_dir'), wgetUploadPath); // for creating the dir
 
+	console.log("relativeUrl: " + relativeUrl);
+	console.log("wgetUploadPath: " + wgetUploadPath);
+	console.log("uploadUrl: " + uploadUrl);
 
 	// check to see if the uploads path exists, create it if not there
 	fs.exists(uploadUrl, function(exists){
 		if(!exists){
-			winston.info(constants.name + ": Path doesn't exist, creating " + uploadUrl);
+			winston.info("[plugins] " + constants.name + ": Path doesn't exist, creating " + uploadUrl);
 			mkdirp(uploadUrl, function(err){
 				if (err){
-					console.log(constants.name + ": Error creating directory: " + err);
+					winston.warn("[plugins] " + constants.name + ": Error creating directory: " + err);
 				}
 				else {
-					console.log(constants.name + ": Successfully created upload directory!");
+					winston.info("[plugins] " + constants.name + ": Successfully created upload directory!");
 				}
 			});
-			console.log(constants.name + ": Done!");
 		}
 		else {
 			winston.info("[plugins] " + constants.name + ": Upload path exists");
@@ -69,21 +71,21 @@
 		}
 		else {
 			var cleanFn = rawUrl.replace(urlRegex, '_');
-			var fullRelPath = relativeUrl + cleanFn;
-			var fullWgetPath = path.join('.', wgetUploadPath, cleanFn);
+			var imgsrcPath = relativeUrl + cleanFn;
+			var fsPath = path.join(wgetUploadPath, cleanFn);
 			var divID = cleanFn.replace(divIDRegex, ''); // div id's can't contain dot
 
-			if (fs.existsSync(fullWgetPath)){
+			if (fs.existsSync(fsPath)){
 				
-				//console.log("Sync: file exists, returning modified URL:" + fullRelPath + "(" + imageNum + ")");
-				return '<div id="' + divID + '"> <img src="' + fullRelPath + '" alt="' + rawUrl + '" ></div>';
+				//console.log("Sync: file exists, returning modified URL:" + imgsrcPath + "(" + imageNum + ")");
+				return '<div id="' + divID + '"> <img src="' + imgsrcPath + '" alt="' + rawUrl + '" ></div>';
 			}
 
-			fs.exists(fullWgetPath, function(exist){ 
+			fs.exists(fsPath, function(exist){ 
 				if (!exist){
-					console.log ("File not found for " + fullRelPath);
+					console.log ("File not found for " + imgsrcPath);
 					var percent = 0;
-					var file = fs.createWriteStream( fullWgetPath );
+					var file = fs.createWriteStream( fsPath );
 					var curl = spawn('curl', [rawUrl]);
 					curl.stdout.on('data', function(data) { 
 						file.write(data); 
@@ -92,7 +94,7 @@
 					curl.stdout.on('end', function(data) {
 						file.end();
 						console.log("File downloaded! " + rawUrl);
-						sendClientEnd(divID, fullRelPath, rawUrl);
+						sendClientEnd(divID, imgsrcPath, rawUrl);
 					});
 					curl.on('exit', function(code) {
 						if (code != 0) {
@@ -101,8 +103,8 @@
 					});
 				}
 				else {
-					console.log("file exists: " + fullWgetPath);
-					sendClientEnd(divID, fullRelPath, rawUrl);
+					console.log("file exists: " + fsPath);
+					sendClientEnd(divID, imgsrcPath, rawUrl);
 				}
 			});
 			
