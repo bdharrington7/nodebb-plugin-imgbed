@@ -19,15 +19,19 @@
 		}
 	});
 
+	var imgDebug = true;
+
 	var uploadHotlinks = meta.config['nodebb-plugin-imgbed:options:upload'],
 		userExt = meta.config['nodebb-plugin-imgbed:options:extensions'],
 		relativeUrl = "/uploads" + constants.admin.route,
 		wgetUploadPath = path.join('.', nconf.get('upload_path'), constants.admin.route),
 		uploadUrl = path.join(nconf.get('base_dir'), wgetUploadPath); // for creating the dir
 
-	console.log("relativeUrl: " + relativeUrl);
-	console.log("wgetUploadPath: " + wgetUploadPath);
-	console.log("uploadUrl: " + uploadUrl);
+	if (imgDebug){
+		console.log("relativeUrl: " + relativeUrl);
+		console.log("wgetUploadPath: " + wgetUploadPath);
+		console.log("uploadUrl: " + uploadUrl);
+	}
 
 	// check to see if the uploads path exists, create it if not there
 	fs.exists(uploadUrl, function(exists){
@@ -58,11 +62,6 @@
 		urlRegex = XRegExp('[^A-Za-z_0-9.-]', 'gi'),
 		divIDRegex = XRegExp('[.]', 'g');
 
-	var dlUrl = function(rawUrl){ //convert the raw url to an upload url on this server
-		rawUrl = rawUrl.replace(XRegExp('[^A-Za-z_0-9.-]', 'gi'), '_');
-		console.log("dlUrl: " + rawUrl);
-		return rawUrl;
-	}
 
 	// takes care of changing and downloading the url if needed
 	var getUrl = function(rawUrl, imageNum){
@@ -83,7 +82,7 @@
 
 			fs.exists(fsPath, function(exist){ 
 				if (!exist){
-					console.log ("File not found for " + imgsrcPath);
+					if (imgDebug) console.log ("File not found for " + imgsrcPath);
 					var percent = 0;
 					var file = fs.createWriteStream( fsPath );
 					var curl = spawn('curl', [rawUrl]);
@@ -93,17 +92,17 @@
 					});
 					curl.stdout.on('end', function(data) {
 						file.end();
-						console.log("File downloaded! " + rawUrl);
+						if (imgDebug) console.log("File downloaded! " + rawUrl);
 						sendClientEnd(divID, imgsrcPath, rawUrl);
 					});
 					curl.on('exit', function(code) {
 						if (code != 0) {
-							console.log('Failed: ' + code);
+							winston.warn('Failed: ' + code);
 						}
 					});
 				}
 				else {
-					console.log("file exists: " + fsPath);
+					if (imgDebug) console.log("file exists: " + fsPath);
 					sendClientEnd(divID, imgsrcPath, rawUrl);
 				}
 			});
