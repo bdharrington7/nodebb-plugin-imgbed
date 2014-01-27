@@ -49,7 +49,7 @@
 	var Imgbed = {},
 		XRegExp = require('xregexp').XRegExp,
 		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'png'],  // add capability for control panel here
-		regexStr = '<a href="(?<url>https?://[^\.]+\.[^\/]+\/[^\.]+\.(' + extensions.join('|') + '))">[^<]*<\/a>';
+		regexStr = '<a href="(?<url>https?://[^\.]+\.[^\/]+\/[^"]+\.(' + extensions.join('|') + '))">[^<]*<\/a>';
 
 	// declare regex as global and case-insensitive
 	var regex = XRegExp(regexStr, 'gi'),
