@@ -53,7 +53,8 @@
 
 	// declare regex as global and case-insensitive
 	var regex = XRegExp(regexStr, 'gi'),
-		urlRegex = XRegExp('[^A-Za-z_0-9.-]', 'gi');
+		urlRegex = XRegExp('[^A-Za-z_0-9.-]', 'gi'),
+		divIDRegex = XRegExp('[.]', 'g');
 
 	var dlUrl = function(rawUrl){ //convert the raw url to an upload url on this server
 		rawUrl = rawUrl.replace(XRegExp('[^A-Za-z_0-9.-]', 'gi'), '_');
@@ -62,7 +63,7 @@
 	}
 
 	// takes care of changing and downloading the url if needed
-	var getUrl = function(rawUrl){
+	var getUrl = function(rawUrl, imageNum){
 		if (uploadHotlinks == 0){
 			return rawUrl;
 		}
@@ -70,25 +71,28 @@
 			var cleanFn = rawUrl.replace(urlRegex, '_');
 			var fullRelPath = relativeUrl + cleanFn;
 			var fullWgetPath = path.join('.', wgetUploadPath, cleanFn);
+			var divID = cleanFn.replace(divIDRegex, ''); // div id's can't contain dot
 
 			if (fs.existsSync(fullWgetPath)){
 				
-				console.log("Sync: file exists, returning modified URL");
-				return fullRelPath;
+				//console.log("Sync: file exists, returning modified URL:" + fullRelPath + "(" + imageNum + ")");
+				return '<div id="' + divID + '"> <img src="' + fullRelPath + '" alt="' + rawUrl + '" ></div>';
 			}
 
 			fs.exists(fullWgetPath, function(exist){ 
 				if (!exist){
 					console.log ("File not found for " + fullRelPath);
+					var percent = 0;
 					var file = fs.createWriteStream( fullWgetPath );
 					var curl = spawn('curl', [rawUrl]);
 					curl.stdout.on('data', function(data) { 
 						file.write(data); 
-						sendClient("Image downloading: ");
+						sendClient(divID, percent++);
 					});
 					curl.stdout.on('end', function(data) {
 						file.end();
 						console.log("File downloaded! " + rawUrl);
+						sendClientEnd(divID, fullRelPath, rawUrl);
 					});
 					curl.on('exit', function(code) {
 						if (code != 0) {
@@ -98,29 +102,34 @@
 				}
 				else {
 					console.log("file exists: " + fullWgetPath);
+					sendClientEnd(divID, fullRelPath, rawUrl);
 				}
 			});
 			
 			// TODO: setting: max size to download
 
-			// return the raw URL anyway. At this point the picture(s) is/are still hotlinked, but will be updated with
-				// the local path upon refresh
-				console.log("END: file doesn't exist, returning original URL");
-				return rawUrl; 
+			// insert a placeholder
+			return '<div id="' + divID + '"></div>';
 
 			
 		}
 	}
 
-	var sendClient = function (info){
-		SocketIndex.server.sockets.emit('event:imgbed.server.rcv', { bytes: 1, total: 2, information: info });
+	// send downloading information to the client
+	var sendClient = function (id, percent){
+		SocketIndex.server.sockets.emit('event:imgbed.server.rcv', { id: id, percent: percent});
 	}
 
-	sendClient("Send Client working");
+	// send the message that the picture finished downloading
+	var sendClientEnd = function (id, url, alt){
+		SocketIndex.server.sockets.emit('event:imgbed.server.rcv.end', { id: id, url: url, alt: alt} );
+	}
+
 
 	Imgbed.parse = function(postContent, callback){
+		//var imageNum = 0;
 		postContent = XRegExp.replace(postContent, regex, function(match){
-				return '<img src="' + getUrl(match.url) + '" alt="' + match.url + '">';
+				return getUrl(match.url);
 			});
 		
 		callback(null, postContent);
