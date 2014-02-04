@@ -8,7 +8,7 @@
 			spawn = require('child_process').spawn,
 			nconf = module.parent.require('nconf'),
 			winston = require('winston'),
-			SocketIndex = module.parent.require('./socket.io/index'),
+			socketIndex = module.parent.require('./socket.io/index'),
 			templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
@@ -51,6 +51,11 @@
 		}
 	});
 
+	socketIndex.server.sockets.on('event:imgbed.debug', function(data){
+		console.log(data);
+		console.log("pong");
+	});
+
 
 	var Imgbed = {},
 		XRegExp = require('xregexp').XRegExp,
@@ -66,7 +71,7 @@
 	// takes care of changing and downloading the url if needed
 	var getUrl = function(rawUrl, imageNum){
 		if (uploadHotlinks == 0){
-			return rawUrl;
+			return '<img src="' + rawUrl + '">';
 		}
 		else {
 			var cleanFn = rawUrl.replace(urlRegex, '_');
@@ -75,8 +80,6 @@
 			var divID = cleanFn.replace(divIDRegex, ''); // div id's can't contain dot
 
 			if (fs.existsSync(fsPath)){
-				
-				//console.log("Sync: file exists, returning modified URL:" + imgsrcPath + "(" + imageNum + ")");
 				return '<div id="' + divID + '"> <img src="' + imgsrcPath + '" alt="' + rawUrl + '" ></div>';
 			}
 
@@ -118,12 +121,12 @@
 
 	// send downloading information to the client
 	var sendClient = function (id, percent){
-		SocketIndex.server.sockets.emit('event:imgbed.server.rcv', { id: id, percent: percent});
+		socketIndex.server.sockets.emit('event:imgbed.server.rcv', { id: id, percent: percent});
 	}
 
 	// send the message that the picture finished downloading
 	var sendClientEnd = function (id, url, alt){
-		SocketIndex.server.sockets.emit('event:imgbed.server.rcv.end', { id: id, url: url, alt: alt} );
+		socketIndex.server.sockets.emit('event:imgbed.server.rcv.end', { id: id, url: url, alt: alt} );
 	}
 
 
