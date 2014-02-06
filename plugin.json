@@ -4,7 +4,7 @@
 	"description": "Embeds images into a post with a simple image url.",
 	"url": "https://github.com/bdharrington7/nodebb-plugin-imgbed",
 	"library": "./library.js", 
-	"staticDirs": {
+	"staticDirs": { 
 		"imgbed": "./public"
 	},
 	"hooks": [

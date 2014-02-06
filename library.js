@@ -16,38 +16,33 @@
 		"admin": {
 			"route": "/imgbed/",
 			"icon": "fa-th-large"
-		}
+		},
+		"namespace": "nodebb-plugin-imgbed"
 	});
 
-	var imgDebug = true;
+	var debug = env == 'development';
 
-	var uploadHotlinks = meta.config['nodebb-plugin-imgbed:options:upload'],
-		userExt = meta.config['nodebb-plugin-imgbed:options:extensions'],
+	var uploadHotlinks = meta.config[constants.namespace + ':options:upload'],
+		userExt = meta.config[constants.namespace + ':options:extensions'],
 		relativeUrl = "/uploads" + constants.admin.route,
 		wgetUploadPath = path.join('.', nconf.get('upload_path'), constants.admin.route),
 		uploadUrl = path.join(nconf.get('base_dir'), wgetUploadPath); // for creating the dir
 
-	if (imgDebug){
-		console.log("relativeUrl: " + relativeUrl);
-		console.log("wgetUploadPath: " + wgetUploadPath);
-		console.log("uploadUrl: " + uploadUrl);
-	}
-
 	// check to see if the uploads path exists, create it if not there
 	fs.exists(uploadUrl, function(exists){
 		if(!exists){
-			winston.info("[plugins] " + constants.name + ": Path doesn't exist, creating " + uploadUrl);
+			winston.info("[plugins/" + constants.namespace + "] Path doesn't exist, creating " + uploadUrl);
 			mkdirp(uploadUrl, function(err){
 				if (err){
-					winston.warn("[plugins] " + constants.name + ": Error creating directory: " + err);
+					winston.warn("[plugins/" + constants.namespace + "] Error creating directory: " + err);
 				}
 				else {
-					winston.info("[plugins] " + constants.name + ": Successfully created upload directory!");
+					winston.info("[plugins/" + constants.namespace + "] Successfully created upload directory!");
 				}
 			});
 		}
 		else {
-			winston.info("[plugins] " + constants.name + ": Upload path exists");
+			winston.info("[plugins/" + constants.namespace + "] Upload path exists");
 		}
 	});
 
@@ -74,29 +69,37 @@
 			return '<img src="' + rawUrl + '">';
 		}
 		else {
-			var cleanFn = rawUrl.replace(urlRegex, '_');
-			var imgsrcPath = relativeUrl + cleanFn;
-			var fsPath = path.join(wgetUploadPath, cleanFn);
-			var divID = cleanFn.replace(divIDRegex, ''); // div id's can't contain dot
+			var cleanFn = rawUrl.replace(urlRegex, '_'),
+				imgsrcPath = relativeUrl + cleanFn,
+				fsPath = path.join(wgetUploadPath, cleanFn),
+				divID = cleanFn.replace(divIDRegex, ''); // div id's can't contain dot
 
 			if (fs.existsSync(fsPath)){
 				return '<div id="' + divID + '"> <img src="' + imgsrcPath + '" alt="' + rawUrl + '" ></div>';
-			}
+			} // else return the original url and download in the background?
 
 			fs.exists(fsPath, function(exist){ 
 				if (!exist){
-					if (imgDebug) console.log ("File not found for " + imgsrcPath);
-					var percent = 0;
-					var file = fs.createWriteStream( fsPath );
-					var curl = spawn('curl', [rawUrl]);
+					if (debug) {
+						winston.info ("File not found for " + imgsrcPath);
+					}
+					var percent = 0,
+						file = fs.createWriteStream( fsPath ),
+						curl = spawn('curl', [rawUrl]);
+
 					curl.stdout.on('data', function(data) { 
 						file.write(data); 
 						sendClient(divID, percent++);
 					});
 					curl.stdout.on('end', function(data) {
 						file.end();
-						if (imgDebug) console.log("File downloaded! " + rawUrl);
+						if (debug) winston.info("File downloaded! " + rawUrl);
 						sendClientEnd(divID, imgsrcPath, rawUrl);
+					});
+					curl.on('error', function(err){ //??
+						winston.error ("Error downloading image! ");
+						winston.error(err);
+
 					});
 					curl.on('exit', function(code) {
 						if (code != 0) {
@@ -105,7 +108,9 @@
 					});
 				}
 				else {
-					if (imgDebug) console.log("file exists: " + fsPath);
+					if (debug) {
+						winston.info("file exists: " + fsPath);
+					}
 					sendClientEnd(divID, imgsrcPath, rawUrl);
 				}
 			});
@@ -121,11 +126,13 @@
 
 	// send downloading information to the client
 	var sendClient = function (id, percent){
+		winston.info("Firing off socket message that download is occurring");
 		socketIndex.server.sockets.emit('event:imgbed.server.rcv', { id: id, percent: percent});
 	}
 
 	// send the message that the picture finished downloading
 	var sendClientEnd = function (id, url, alt){
+		winston.info("Firing off socket message that download is DONE");
 		socketIndex.server.sockets.emit('event:imgbed.server.rcv.end', { id: id, url: url, alt: alt} );
 	}
 
@@ -170,7 +177,7 @@
 	}
 
 	Imgbed.getScripts = function(scripts, callback){
-		return scripts.concat(['plugins/nodebb-plugin-imgbed/js/imgbed_main.js']);
+		return scripts.concat(['plugins/imgbed/js/imgbed_main.js']);
 	}
 
 	module.exports = Imgbed;
