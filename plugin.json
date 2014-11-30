@@ -3,14 +3,17 @@
 	"name": "Imgbed",
 	"description": "Embeds images into a post with a simple image url.",
 	"url": "https://github.com/bdharrington7/nodebb-plugin-imgbed",
-	"library": "./library.js", 
-	"staticDirs": { 
-		"imgbed": "./public"
+	"library": "./library.js",
+	"staticDirs": {
 	},
+	"scripts": [
+		"public/js/imgbed_main.js"
+	],
+	"templates": "./public/templates",
 	"hooks": [
-		{ "hook": "filter:post.parse", "method": "parse", "callbacked": true, "priority": 6 },
-		{ "hook": "filter:admin.header.build", "method": "registerPlugin", "callbacked": false },
-		{ "hook": "filter:admin.create_routes", "method": "addRoute", "callbacked": true },
+		{ "hook": "static:app.load", "method": "onLoad" },
+		{ "hook": "filter:parse.post", "method": "parse", "callbacked": true, "priority": 6 },
+		{ "hook": "filter:admin.header.build", "method": "admin.menu", "callbacked": false },
 		{ "hook": "filter:scripts.get", "method": "getScripts", "callbacked": false }
 	]
 }

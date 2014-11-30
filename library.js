@@ -5,17 +5,19 @@
 	var		fs = require('fs'),
 			path = require('path'),
 			mkdirp = require('mkdirp'),
-			spawn = require('child_process').spawn,
+			spawn = require('child_process').spawn, //TODO: this is used for curl, use wget module?
 			nconf = module.parent.require('nconf'),
 			winston = require('winston'),
-			socketIndex = module.parent.require('./socket.io/index'),
-			templates = module.parent.require('../public/src/templates.js');
+			meta = module.parent.require('./meta'),
+			socketIndex = module.parent.require('./socket.io/index');
+			//templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
 		"name": "Imgbed",
 		"admin": {
-			"route": "/imgbed/",
-			"icon": "fa-th-large"
+			"route": "/plugins/imgbed/",
+			"icon": "fa-th-large",
+			"name": "Imgbed"
 		},
 		"namespace": "nodebb-plugin-imgbed"
 	});
@@ -54,8 +56,8 @@
 
 	var Imgbed = {},
 		XRegExp = require('xregexp').XRegExp,
-		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'gifv', 'png'],  // add capability for control panel here
-		regexStr = '<a href="(?<url>https?://[^\.]+\.[^\/]+\/[^"]+\.(' + extensions.join('|') + '))">[^<]*<\/a>';
+		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'gifv', 'png'],  // TODO: done? add capability for control panel here
+		regexStr = '<a href="(?<url>https?://[^\.]+\.[^\/]+\/[^"]+\.(' + extensions.join('|') + '))">[^<]*<\/a>'; // TODO: fix regex
 
 	// declare regex as global and case-insensitive
 	var regex = XRegExp(regexStr, 'gi'),
@@ -64,7 +66,7 @@
 
 
 	// takes care of changing and downloading the url if needed
-	var getUrl = function(rawUrl, imageNum){
+	var getElement = function(rawUrl, imageNum) {
 		if (uploadHotlinks == 0){
 			return '<img src="' + rawUrl + '">';
 		}
@@ -119,43 +121,58 @@
 
 			// insert a placeholder
 			return '<div id="' + divID + '"></div>';
-
-
 		}
-	}
+	};
 
 	// send downloading information to the client
 	var sendClient = function (id, percent){
 		winston.info("Firing off socket message that download is occurring");
 		socketIndex.server.sockets.emit('event:imgbed.server.rcv', { id: id, percent: percent});
-	}
+	};
 
 	// send the message that the picture finished downloading
 	var sendClientEnd = function (id, url, alt){
 		winston.info("Firing off socket message that download is DONE");
 		socketIndex.server.sockets.emit('event:imgbed.server.rcv.end', { id: id, url: url, alt: alt} );
-	}
+	};
 
 
-	Imgbed.parse = function(postContent, callback){
+	Imgbed.parse = function (data, callback) {
+		if (!data || !data.postData || !data.postData.content) {
+			return callback(null, data);
+		}
 		//var imageNum = 0;
-		postContent = XRegExp.replace(postContent, regex, function(match){
-				return getUrl(match.url);
+		data.postData.content = XRegExp.replace(postContent, regex, function(match){
+				return getElement(match.url);
 			});
 
-		callback(null, postContent);
+		callback(null, data);
+	};
+
+	Imgbed.onLoad = function(params, callback) {
+		function render(req, res, next) {
+			res.render('admin/plugins/imgbed');
+		}
+
+		params.router.get('/admin/plugins/imgbed', params.middleware.admin.buildHeader, render);
+		params.router.get('/api/admin/plugins/imgbed', render);
+
+		// Imgbed.init();
+		callback();
 	}
 
-	Imgbed.registerPlugin = function(custom_header, callback){
-		custom_header.plugins.push({
-			"route": constants.admin.route,
-			"icon": constants.admin.icon,
-			"name": constants.name
-		});
+	Imgbed.admin = {
+		menu: function (custom_header, callback) {
+			custom_header.plugins.push({
+				"route": constants.admin.route,
+				"icon": constants.admin.icon,
+				"name": constants.admin.name
+			});
+			callback(null, custom_header);
+		}
+	};
 
-		return custom_header;
-	}
-
+	// TODO this needs to move somewhere
 	Imgbed.addRoute = function(custom_routes, callback){
 		fs.readFile(path.resolve(__dirname, "./public/templates/admin.tpl"), function (err, template){
 			custom_routes.routes.push({
@@ -174,11 +191,11 @@
 
 			callback(null, custom_routes);
 		});
-	}
+	};
 
-	Imgbed.getScripts = function(scripts, callback){
-		return scripts.concat(['plugins/imgbed/js/imgbed_main.js']);
-	}
+	// Imgbed.getScripts = function(scripts, callback){
+	// 	return scripts.concat(['plugins/imgbed/js/imgbed_main.js']);
+	// };
 
 	module.exports = Imgbed;
 

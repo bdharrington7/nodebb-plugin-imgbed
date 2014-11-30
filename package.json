@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "xregexp": "~2.0.0",
-    "path": "~1.1.36",
-    "mkdirp": "~0.3.0"
+    "mkdirp": "~0.3.0",
+    "winston": "^0.8.3"
   },
   "nbbpm": {
     "compatibility": "^0.5.0"
