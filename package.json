@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-imgbed",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Creates an image tag to an image url that you post",
   "main": "library.js",
   "scripts": {
@@ -26,5 +26,8 @@
     "xregexp": "~2.0.0",
     "path": "~1.1.36",
     "mkdirp": "~0.3.0"
+  },
+  "nbbpm": {
+    "compatibility": "^0.5.0"
   }
 }
