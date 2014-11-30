@@ -54,7 +54,7 @@
 
 	var Imgbed = {},
 		XRegExp = require('xregexp').XRegExp,
-		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'png'],  // add capability for control panel here
+		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'gifv', 'png'],  // add capability for control panel here
 		regexStr = '<a href="(?<url>https?://[^\.]+\.[^\/]+\/[^"]+\.(' + extensions.join('|') + '))">[^<]*<\/a>';
 
 	// declare regex as global and case-insensitive
@@ -78,7 +78,7 @@
 				return '<div id="' + divID + '"> <img src="' + imgsrcPath + '" alt="' + rawUrl + '" ></div>';
 			} // else return the original url and download in the background?
 
-			fs.exists(fsPath, function(exist){ 
+			fs.exists(fsPath, function(exist){
 				if (!exist){
 					if (debug) {
 						winston.info ("File not found for " + imgsrcPath);
@@ -87,8 +87,8 @@
 						file = fs.createWriteStream( fsPath ),
 						curl = spawn('curl', [rawUrl]);
 
-					curl.stdout.on('data', function(data) { 
-						file.write(data); 
+					curl.stdout.on('data', function(data) {
+						file.write(data);
 						sendClient(divID, percent++);
 					});
 					curl.stdout.on('end', function(data) {
@@ -114,13 +114,13 @@
 					sendClientEnd(divID, imgsrcPath, rawUrl);
 				}
 			});
-			
+
 			// TODO: setting: max size to download
 
 			// insert a placeholder
 			return '<div id="' + divID + '"></div>';
 
-			
+
 		}
 	}
 
@@ -142,7 +142,7 @@
 		postContent = XRegExp.replace(postContent, regex, function(match){
 				return getUrl(match.url);
 			});
-		
+
 		callback(null, postContent);
 	}
 
