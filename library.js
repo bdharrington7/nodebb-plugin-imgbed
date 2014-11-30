@@ -142,7 +142,7 @@
 			return callback(null, data);
 		}
 		//var imageNum = 0;
-		data.postData.content = XRegExp.replace(postContent, regex, function(match){
+		data.postData.content = XRegExp.replace(data.postData.content, regex, function(match){
 				return getElement(match.url);
 			});
 
