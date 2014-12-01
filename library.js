@@ -52,6 +52,7 @@
 		}
 		return markdownVal;
 		//TODO remove the upload option from the ACP
+		// TODO: detect a markdown plugin installed and activated
 	};
 
 	// send downloading information to the client
@@ -73,8 +74,6 @@
 		}
 		//var imageNum = 0;
 		data.postData.content = XRegExp.replace(data.postData.content, regex, function(match){
-			  console.log('*** Match!');
-			  console.log(match);
 				return convertToMarkdown(match.paren, match.url);
 			});
 
