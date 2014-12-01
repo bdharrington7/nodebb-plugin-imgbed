@@ -2,15 +2,11 @@
 
 (function (module){
 	"use strict";
-	var		fs = require('fs'),
+	var	winston = require('winston'),
 			path = require('path'),
-			mkdirp = require('mkdirp'),
-			spawn = require('child_process').spawn, //TODO: this is used for curl, use wget module?
-			nconf = module.parent.require('nconf'),
-			winston = require('winston'),
-			meta = module.parent.require('./meta'),
-			socketIndex = module.parent.require('./socket.io/index');
-			//templates = module.parent.require('../public/src/templates.js');
+			nodejsUrl = require('url'),
+			XRegExp = require('xregexp').XRegExp,
+			meta = module.parent.require('./meta');
 
 	var constants = Object.freeze({
 		"name": "Imgbed",
@@ -23,41 +19,15 @@
 	});
 
 	var debug = env == 'development';
+	if (debug) {
+		winston.info('Imgbed in debug mode!');
+	}
 
-	var uploadHotlinks = meta.config[constants.namespace + ':options:upload'],
-		userExt = meta.config[constants.namespace + ':options:extensions'],
-		relativeUrl = "/uploads" + constants.admin.route,
-		wgetUploadPath = path.join('.', nconf.get('upload_path'), constants.admin.route),
-		uploadUrl = path.join(nconf.get('base_dir'), wgetUploadPath); // for creating the dir
-
-	// check to see if the uploads path exists, create it if not there
-	fs.exists(uploadUrl, function(exists){
-		if(!exists){
-			winston.info("[plugins/" + constants.namespace + "] Path doesn't exist, creating " + uploadUrl);
-			mkdirp(uploadUrl, function(err){
-				if (err){
-					winston.warn("[plugins/" + constants.namespace + "] Error creating directory: " + err);
-				}
-				else {
-					winston.info("[plugins/" + constants.namespace + "] Successfully created upload directory!");
-				}
-			});
-		}
-		else {
-			winston.info("[plugins/" + constants.namespace + "] Upload path exists");
-		}
-	});
-
-	socketIndex.server.sockets.on('event:imgbed.debug', function(data){
-		console.log(data);
-		console.log("pong");
-	});
-
+	var	userExt = meta.config[constants.namespace + ':options:extensions'];
 
 	var Imgbed = {},
-		XRegExp = require('xregexp').XRegExp,
 		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'gifv', 'png'],  // TODO: done? add capability for control panel here
-		regexStr = '<a href="(?<url>https?://[^\.]+\.[^\/]+\/[^"]+\.(' + extensions.join('|') + '))">[^<]*<\/a>'; // TODO: fix regex
+		regexStr = '(?<paren>[\(]\\s*)?(?<url>https?:\/\/[^\\s]+\.(' + extensions.join('|') + ')[^\\s]*)';
 
 	// declare regex as global and case-insensitive
 	var regex = XRegExp(regexStr, 'gi'),
@@ -66,62 +36,22 @@
 
 
 	// takes care of changing and downloading the url if needed
-	var getElement = function(rawUrl, imageNum) {
-		if (uploadHotlinks == 0){
-			return '<img src="' + rawUrl + '">';
+	// opening parenthesis, if present, signifies that this is already markdownified
+	// this is needed because JS has no negative lookbehind
+	var convertToMarkdown = function(paren, rawUrl) {
+		if (debug) {
+			winston.info('Imgbed: converting url: ' + rawUrl)
 		}
-		else {
-			var cleanFn = rawUrl.replace(urlRegex, '_'),
-				imgsrcPath = relativeUrl + cleanFn,
-				fsPath = path.join(wgetUploadPath, cleanFn),
-				divID = cleanFn.replace(divIDRegex, ''); // div id's can't contain dot
-
-			if (fs.existsSync(fsPath)){
-				return '<div id="' + divID + '"> <img src="' + imgsrcPath + '" alt="' + rawUrl + '" ></div>';
-			} // else return the original url and download in the background?
-
-			fs.exists(fsPath, function(exist){
-				if (!exist){
-					if (debug) {
-						winston.info ("File not found for " + imgsrcPath);
-					}
-					var percent = 0,
-						file = fs.createWriteStream( fsPath ),
-						curl = spawn('curl', [rawUrl]);
-
-					curl.stdout.on('data', function(data) {
-						file.write(data);
-						sendClient(divID, percent++);
-					});
-					curl.stdout.on('end', function(data) {
-						file.end();
-						if (debug) winston.info("File downloaded! " + rawUrl);
-						sendClientEnd(divID, imgsrcPath, rawUrl);
-					});
-					curl.on('error', function(err){ //??
-						winston.error ("Error downloading image! ");
-						winston.error(err);
-
-					});
-					curl.on('exit', function(code) {
-						if (code != 0) {
-							winston.warn('Failed: ' + code);
-						}
-					});
-				}
-				else {
-					if (debug) {
-						winston.info("file exists: " + fsPath);
-					}
-					sendClientEnd(divID, imgsrcPath, rawUrl);
-				}
-			});
-
-			// TODO: setting: max size to download
-
-			// insert a placeholder
-			return '<div id="' + divID + '"></div>';
+		//just change the matching urls to markdown syntax
+		var markdownVal = '![' + path.basename(nodejsUrl.parse(rawUrl).pathname) + '](' + rawUrl + ')';
+		if (debug) {
+			winston.info('...url converted to: ' + markdownVal);
 		}
+		if (paren) {
+			return paren + rawUrl; // return whole match
+		}
+		return markdownVal;
+		//TODO remove the upload option from the ACP
 	};
 
 	// send downloading information to the client
@@ -143,7 +73,9 @@
 		}
 		//var imageNum = 0;
 		data.postData.content = XRegExp.replace(data.postData.content, regex, function(match){
-				return getElement(match.url);
+			  console.log('*** Match!');
+			  console.log(match);
+				return convertToMarkdown(match.paren, match.url);
 			});
 
 		callback(null, data);

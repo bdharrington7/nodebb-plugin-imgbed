@@ -12,8 +12,7 @@
 	"templates": "./public/templates",
 	"hooks": [
 		{ "hook": "static:app.load", "method": "onLoad" },
-		{ "hook": "filter:parse.post", "method": "parse", "callbacked": true, "priority": 6 },
-		{ "hook": "filter:admin.header.build", "method": "admin.menu", "callbacked": false },
-		{ "hook": "filter:scripts.get", "method": "getScripts", "callbacked": false }
+		{ "hook": "filter:parse.post", "method": "parse", "callbacked": true, "priority": 4 },
+		{ "hook": "filter:admin.header.build", "method": "admin.menu", "callbacked": false }
 	]
 }
