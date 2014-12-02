@@ -26,7 +26,7 @@
 	var	userExt = meta.config[constants.namespace + ':options:extensions'];
 
 	var Imgbed = {},
-		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'gifv', 'png'],  // TODO: done? add capability for control panel here
+		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'gifv', 'png', 'svg'],  // TODO: done? add capability for control panel here
 		regexStr = '(?<paren>[\(]\\s*)?(?<url>https?:\/\/[^\\s]+\.(' + extensions.join('|') + ')[^\\s]*)';
 
 	// declare regex as global and case-insensitive
@@ -54,19 +54,6 @@
 		//TODO remove the upload option from the ACP
 		// TODO: detect a markdown plugin installed and activated
 	};
-
-	// send downloading information to the client
-	var sendClient = function (id, percent){
-		winston.info("Firing off socket message that download is occurring");
-		socketIndex.server.sockets.emit('event:imgbed.server.rcv', { id: id, percent: percent});
-	};
-
-	// send the message that the picture finished downloading
-	var sendClientEnd = function (id, url, alt){
-		winston.info("Firing off socket message that download is DONE");
-		socketIndex.server.sockets.emit('event:imgbed.server.rcv.end', { id: id, url: url, alt: alt} );
-	};
-
 
 	Imgbed.parse = function (data, callback) {
 		if (!data || !data.postData || !data.postData.content) {

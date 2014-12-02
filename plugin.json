@@ -6,9 +6,6 @@
 	"library": "./library.js",
 	"staticDirs": {
 	},
-	"scripts": [
-		"public/js/imgbed_main.js"
-	],
 	"templates": "./public/templates",
 	"hooks": [
 		{ "hook": "static:app.load", "method": "onLoad" },

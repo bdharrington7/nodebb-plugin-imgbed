@@ -1,13 +1,15 @@
 nodebb-plugin-imgbed
 ====================
 
-Embeds images into a post with just an image url
+Embeds images into a post with just an image url.
 
-Features
+This plugin parses links that are image urls and changes them into markdown-parseable text.
+
+Requirements:
 ------------------
-* Ability to specify which image extensions are supported
-* Option to auto-download any hotlinked pictures
+[nodebb-plugin-markdown](https://community.nodebb.org/topic/77/nodebb-plugin-markdown-markdown-parser) or a similar markdown parser must be installed and enabled
+
 
 Upcoming
 ------------------
-* Progress bar
+* Support for having no markdown parser, or alternate image embedding syntax
