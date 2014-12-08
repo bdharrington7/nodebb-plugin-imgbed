@@ -49,14 +49,17 @@
 		settings.sync();
 	}
 
-// TODO change
-	var	userExt = settings.get().strings.extensions;
+
+	var	userExt = settings.get('strings.extensions');
+	if (debug) {
+		winston.info('Imgbed: userExt is ' + userExt);
+	}
 
 	var Imgbed = {},
 		extensionsArr = (userExt && userExt.length > 0)
 									? userExt.split(',')
 									: defaultSettings.strings.extensions.split(','),
-		regexStr = '(?<paren>[\(]\\s*)?(?<url>https?:\/\/[^\\s]+\.(' + extensionsArr.join('|') + ')[^\\s]*)';
+		regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + ')[^\\s]*)';
 
 	// declare regex as global and case-insensitive
 	var regex = XRegExp(regexStr, 'gi');
