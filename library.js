@@ -1,12 +1,14 @@
 //library.js
 
 (function (module){
-	"use strict";
+	'use strict';
 	var	winston = require('winston'),
 			path = require('path'),
 			nodejsUrl = require('url'),
 			XRegExp = require('xregexp').XRegExp,
-			meta = module.parent.require('./meta');
+			Settings = module.parent.require('./settings'),
+			SocketAdmin = module.parent.require('./socket.io/admin')
+			// meta = module.parent.require('./meta');
 
 	var constants = Object.freeze({
 		"name": "Imgbed",
@@ -19,21 +21,45 @@
 	});
 
 	var debug = env == 'development';
+
+	var defaultSettings = {
+		booleans: {
+			hasMarkdown: true
+		},
+		strings: {
+			extensions: 'jpg,jpeg,gif,gifv,png,svg'
+		}
+	};
+
 	if (debug) {
 		winston.info('Imgbed in debug mode!');
 	}
 
-	var	userExt = meta.config[constants.namespace + ':options:extensions'];
+	var settings = new Settings('imgbed', '0.1.1', defaultSettings, function(){
+		if (debug) {
+			winston.info('Imgbed settings loaded');
+		}
+	});
+
+	SocketAdmin.settings.syncImgbed = function(data) {
+		if (debug) {
+			winston.info('Imgbed: syncing settings');
+			winston.info(data);
+		}
+		settings.sync();
+	}
+
+// TODO change
+	var	userExt = settings.get().strings.extensions;
 
 	var Imgbed = {},
-		extensions = userExt ? userExt.split(',') : ['jpg', 'jpeg', 'gif', 'gifv', 'png', 'svg'],  // TODO: done? add capability for control panel here
-		regexStr = '(?<paren>[\(]\\s*)?(?<url>https?:\/\/[^\\s]+\.(' + extensions.join('|') + ')[^\\s]*)';
+		extensionsArr = (userExt && userExt.length > 0)
+									? userExt.split(',')
+									: defaultSettings.strings.extensions.split(','),
+		regexStr = '(?<paren>[\(]\\s*)?(?<url>https?:\/\/[^\\s]+\.(' + extensionsArr.join('|') + ')[^\\s]*)';
 
 	// declare regex as global and case-insensitive
-	var regex = XRegExp(regexStr, 'gi'),
-		urlRegex = XRegExp('[^A-Za-z_0-9.-]', 'gi'),
-		divIDRegex = XRegExp('[.]', 'g');
-
+	var regex = XRegExp(regexStr, 'gi');
 
 	// takes care of changing and downloading the url if needed
 	// opening parenthesis, if present, signifies that this is already markdownified
@@ -51,11 +77,13 @@
 			return paren + rawUrl; // return whole match
 		}
 		return markdownVal;
-		//TODO remove the upload option from the ACP
 		// TODO: detect a markdown plugin installed and activated
 	};
 
 	Imgbed.parse = function (data, callback) {
+		if(debug) {
+			winston.info('Imgbed regex is '+ regexStr);
+		}
 		if (!data || !data.postData || !data.postData.content) {
 			return callback(null, data);
 		}
