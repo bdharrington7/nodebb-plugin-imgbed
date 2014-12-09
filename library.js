@@ -8,7 +8,6 @@
 			XRegExp = require('xregexp').XRegExp,
 			Settings = module.parent.require('./settings'),
 			SocketAdmin = module.parent.require('./socket.io/admin')
-			// meta = module.parent.require('./meta');
 
 	var constants = Object.freeze({
 		"name": "Imgbed",
@@ -41,28 +40,10 @@
 		}
 	});
 
-	SocketAdmin.settings.syncImgbed = function(data) {
-		if (debug) {
-			winston.info('Imgbed: syncing settings');
-			winston.info(data);
-		}
-		settings.sync();
-	}
+	var Imgbed = {};
 
-
-	var	userExt = settings.get('strings.extensions');
-	if (debug) {
-		winston.info('Imgbed: userExt is ' + userExt);
-	}
-
-	var Imgbed = {},
-		extensionsArr = (userExt && userExt.length > 0)
-									? userExt.split(',')
-									: defaultSettings.strings.extensions.split(','),
-		regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + ')[^\\s]*)';
-
-	// declare regex as global and case-insensitive
-	var regex = XRegExp(regexStr, 'gi');
+	var regex,
+		regexStr;
 
 	// takes care of changing and downloading the url if needed
 	// opening parenthesis, if present, signifies that this is already markdownified
@@ -80,7 +61,23 @@
 			return paren + rawUrl; // return whole match
 		}
 		return markdownVal;
-		// TODO: detect a markdown plugin installed and activated
+		// TODO: detect a markdown plugin installed and activated?
+	};
+
+	Imgbed.init = function() {
+		var	userExt = settings.get('strings.extensions');
+		if (debug) {
+			winston.info('Imgbed: userExt is ' + userExt);
+		}
+
+
+		var extensionsArr = (userExt && userExt.length > 0)
+		? userExt.split(',')
+		: defaultSettings.strings.extensions.split(','),
+		regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + ')[^\\s]*)';
+
+		// declare regex as global and case-insensitive
+		regex = XRegExp(regexStr, 'gi');
 	};
 
 	Imgbed.parse = function (data, callback) {
@@ -90,7 +87,7 @@
 		if (!data || !data.postData || !data.postData.content) {
 			return callback(null, data);
 		}
-		//var imageNum = 0;
+
 		data.postData.content = XRegExp.replace(data.postData.content, regex, function(match){
 				return convertToMarkdown(match.paren, match.url);
 			});
@@ -106,8 +103,16 @@
 		params.router.get('/admin/plugins/imgbed', params.middleware.admin.buildHeader, render);
 		params.router.get('/api/admin/plugins/imgbed', render);
 
-		// Imgbed.init();
+		Imgbed.init();
 		callback();
+	};
+
+	SocketAdmin.settings.syncImgbed = function(data) {
+		if (debug) {
+			winston.info('Imgbed: syncing settings');
+			winston.info(data);
+		}
+		settings.sync(Imgbed.init);
 	}
 
 	Imgbed.admin = {
@@ -141,10 +146,6 @@
 			callback(null, custom_routes);
 		});
 	};
-
-	// Imgbed.getScripts = function(scripts, callback){
-	// 	return scripts.concat(['plugins/imgbed/js/imgbed_main.js']);
-	// };
 
 	module.exports = Imgbed;
 
