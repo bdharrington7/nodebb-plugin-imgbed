@@ -7,6 +7,7 @@
 			nodejsUrl = require('url'),
 			XRegExp = require('xregexp').XRegExp,
 			Settings = module.parent.require('./settings'),
+			Cache = module.parent.require('./posts/cache'),
 			SocketAdmin = module.parent.require('./socket.io/admin')
 
 	var constants = Object.freeze({
@@ -67,12 +68,17 @@
 	Imgbed.init = function() {
 		var	userExt = settings.get('strings.extensions');
 		if (debug) {
-			winston.info('Imgbed: userExt is ' + userExt);
+			winston.info('Imgbed: user defined extensions is ' + userExt);
 		}
 
 		var extensionsArr = (userExt && userExt.length > 0)
-		? userExt.split(',')
-		: defaultSettings.strings.extensions.split(','),
+				? userExt.split(',')
+				: defaultSettings.strings.extensions.split(',');
+
+		extensionsArr = extensionsArr.map(function(str){
+			return str.trim();
+		});
+
 		regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + '))';
 
 		// declare regex as global and case-insensitive
@@ -81,9 +87,6 @@
 	};
 
 	Imgbed.parse = function (data, callback) {
-		if(debug) {
-			winston.info('Imgbed regex is '+ regexStr);
-		}
 		if (!data || !data.postData || !data.postData.content) {
 			return callback(null, data);
 		}
@@ -110,9 +113,16 @@
 	SocketAdmin.settings.syncImgbed = function(data) {
 		if (debug) {
 			winston.info('Imgbed: syncing settings');
-			winston.info(data);
 		}
 		settings.sync(Imgbed.init);
+	}
+
+	SocketAdmin.settings.clearPostCache = function(data) {
+		if (debug) {
+			winston.info('Clearing all posts from cache');
+		}
+		Cache.reset();
+		// SocketAdmin.emit('admin.settings.postCacheCleared', {});
 	}
 
 	Imgbed.admin = {
