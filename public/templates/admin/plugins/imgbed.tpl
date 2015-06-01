@@ -33,6 +33,17 @@
 							// TODO clean and organize extensions
 							settings.persist('imgbed', wrapper, function persistImgbed() {
 								socket.emit('admin.settings.syncImgbed');
+								// this probably isn't necessary, even when utilizing this feature, the posts wouldn't change until reboot
+								// probably some cache needs to be invalidated
+								// app.alert({
+								// 	type: 'success',
+								// 	alert_id: 'imgbed-saved',
+								// 	title: 'Reload Required',
+								// 	message: 'Please reload your NodeBB to have your changes take effect',
+								// 	clickfn: function() {
+								// 		socket.emit('admin.reload');
+								// 	}
+								// });
 							})
 						});
 					});

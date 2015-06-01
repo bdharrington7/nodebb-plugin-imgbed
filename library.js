@@ -43,7 +43,7 @@
 	var Imgbed = {};
 
 	var regex,
-		regexStr;
+			regexStr;
 
 	// takes care of changing and downloading the url if needed
 	// opening parenthesis, if present, signifies that this is already markdownified
@@ -70,7 +70,6 @@
 			winston.info('Imgbed: userExt is ' + userExt);
 		}
 
-
 		var extensionsArr = (userExt && userExt.length > 0)
 		? userExt.split(',')
 		: defaultSettings.strings.extensions.split(','),
@@ -78,6 +77,7 @@
 
 		// declare regex as global and case-insensitive
 		regex = XRegExp(regexStr, 'gi');
+		winston.info("Imgbed: regex recalculated: " + regexStr);
 	};
 
 	Imgbed.parse = function (data, callback) {
