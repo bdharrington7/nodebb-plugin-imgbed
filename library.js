@@ -74,7 +74,7 @@
 		var extensionsArr = (userExt && userExt.length > 0)
 		? userExt.split(',')
 		: defaultSettings.strings.extensions.split(','),
-		regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + ')[^\\s]*)';
+		regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + '))';
 
 		// declare regex as global and case-insensitive
 		regex = XRegExp(regexStr, 'gi');
@@ -124,27 +124,6 @@
 			});
 			callback(null, custom_header);
 		}
-	};
-
-	// TODO this needs to move somewhere
-	Imgbed.addRoute = function(custom_routes, callback){
-		fs.readFile(path.resolve(__dirname, "./public/templates/admin.tpl"), function (err, template){
-			custom_routes.routes.push({
-				"route": constants.admin.route,
-				"method": "get",
-				"options": function (req, res, callback) {
-					callback({
-						req: req,
-						res: res,
-						route: constants.admin.route,
-						name: constants.name,
-						content: template
-					});
-				}
-			});
-
-			callback(null, custom_routes);
-		});
 	};
 
 	module.exports = Imgbed;
