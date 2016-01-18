@@ -9,6 +9,7 @@
   var Settings = module.parent.require('./settings')
   var Cache = module.parent.require('./posts/cache')
   var SocketAdmin = module.parent.require('./socket.io/admin')
+  var debug
 
   var constants = Object.freeze({
     'name': 'Imgbed',
@@ -19,8 +20,6 @@
     },
     'namespace': 'nodebb-plugin-imgbed'
   })
-
-  var debug = env === 'development'
 
   var defaultSettings = {
     booleans: {
@@ -99,6 +98,8 @@
   }
 
   Imgbed.onLoad = function (params, callback) {
+    // console.log('calling onLoad')
+    debug = env === 'development'
     function render (req, res, next) {
       res.render('admin/plugins/imgbed')
     }

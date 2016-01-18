@@ -5,7 +5,8 @@
   "main": "library.js",
   "scripts": {
     "lint": "standard",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/test.js",
+    "posttest": "npm run lint"
   },
   "repository": {
     "type": "git",
@@ -29,7 +30,10 @@
     "winston": "^0.8.3"
   },
   "devDependencies": {
-    "standard": "5.4.x"
+    "standard": "5.4.x",
+    "mocha": "2.3.x",
+    "mock-require": "1.2.x",
+    "rewire": "2.5.x"
   },
   "nbbpm": {
     "compatibility": ">=0.6.0"
