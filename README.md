@@ -1,6 +1,8 @@
 nodebb-plugin-imgbed
 ====================
 
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/) [![Build Status](https://travis-ci.org/bdharrington7/nodebb-plugin-imgbed.svg?branch=master)](https://travis-ci.org/bdharrington7/nodebb-plugin-imgbed)
+
 Embeds images into a post with just an image url.
 
 This plugin parses links that are image urls and changes them into markdown-parseable text.
