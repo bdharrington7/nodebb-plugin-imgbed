@@ -8,7 +8,7 @@ mock('./settings', function (name, version, defaultSettingsObj, cb) {
   return {
     get: function (parameter) {
       if (parameter === 'strings.extensions') {
-        return 'jpg,jpeg,png'
+        return 'jpg,jpeg,png,gif'
       }
     }
   }
@@ -64,81 +64,55 @@ var testEquals = function (err, data, expectedBody) {
 }
 
 describe('parse_to_markdown', function () {
-  it('should parse an http image url into markdown syntax', function (done) {
-    var testBody = 'http://images.google.com/path/image.jpg'
-    var parsedBody = '![image.jpg](http://images.google.com/path/image.jpg)'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, parsedBody)
-      done()
+  // test values, these get passed into a loop that runs the same form of test
+  var should = [
+    {desc: 'parse an http image url into markdown syntax',
+      body: 'http://images.google.com/path/image.jpg',
+      output: '![image.jpg](http://images.google.com/path/image.jpg)'},
+    {desc: 'parse an https image url into markdown syntax',
+      body: 'https://images.google.com/path/image.jpg',
+      output: '![image.jpg](https://images.google.com/path/image.jpg)'},
+    {desc: 'preserve case',
+      body: 'https://images.google.com/path/imAge.jpg',
+      output: '![imAge.jpg](https://images.google.com/path/imAge.jpg)'},
+    {desc: 'handle multiple subdomains and paths',
+      body: 'http://cdn.images.google.com/path/to/asset/image.jpg',
+      output: '![image.jpg](http://cdn.images.google.com/path/to/asset/image.jpg)'},
+    {desc: 'handle facebook urls',
+      body: 'https://scontent-sjc2-1.xx.fbcdn.net/hphotos-xtf1/v/t1.0-9/10556276_10205923028580508_6898116064636149990_n.jpg?oh=b76c8570670331d831d04ec146aeb6b5&o_e=5736A9F2',
+      output: '![10556276_10205923028580508_6898116064636149990_n.jpg](https://scontent-sjc2-1.xx.fbcdn.net/hphotos-xtf1/v/t1.0-9/10556276_10205923028580508_6898116064636149990_n.jpg?oh=b76c8570670331d831d04ec146aeb6b5&o_e=5736A9F2)'},
+    {desc: 'parse multiple images into markdown syntax',
+      body: 'http://images.google.com/path/image_one.jpg \n https://images.google.com/anotherpath/image_two.gif',
+      output: '![image_one.jpg](http://images.google.com/path/image_one.jpg) \n ![image_two.gif](https://images.google.com/anotherpath/image_two.gif)'}
+  ]
+
+  var should_not = [
+    {desc: 'parse a non-image url into markdown syntax',
+      body: 'http://images.google.com/path/index.html'},
+    {desc: 'convert image names',
+      body: 'that unicorn.jpg was really cool'},
+    {desc: 'convert markdown syntax',
+      body: '![markdown.jpg](http://images.google.com/images/markdown.jpg)'}
+  ]
+
+  // test loops
+  should.forEach(function (test) {
+    it('should ' + test.desc, function (done) {
+      var data = createPayload(test.body)
+      imgbed.parse(data, function (err, data) {
+        testEquals(err, data, test.output)
+        done()
+      })
     })
   })
 
-  it('should parse an https image url into markdown syntax', function (done) {
-    var testBody = 'https://images.google.com/path/image.jpg'
-    var parsedBody = '![image.jpg](https://images.google.com/path/image.jpg)'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, parsedBody)
-      done()
-    })
-  })
-
-  it('should preserve case', function (done) {
-    var testBody = 'https://images.google.com/path/imAge.jpg'
-    var parsedBody = '![imAge.jpg](https://images.google.com/path/imAge.jpg)'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, parsedBody)
-      done()
-    })
-  })
-
-  it('should handle multiple subdomains and paths', function (done) {
-    var testBody = 'http://cdn.images.google.com/path/to/asset/image.jpg'
-    var parsedBody = '![image.jpg](http://cdn.images.google.com/path/to/asset/image.jpg)'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, parsedBody)
-      done()
-    })
-  })
-
-  // this doesn't seem to work in test, but it works in nodebb, haven't figured out why
-  it.skip('should parse multiple images into markdown syntax', function (done) {
-    var testBody = 'http://images.google.com/path/image_one.jpg  https://images.google.com/anotherpath/image_twp.gif'
-    var parsedBody = '![image_one.jpg](http://images.google.com/path/image_one.jpg)  ![image_two.gif](https://images.google.com/anotherpath/image_two.gif)'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, parsedBody)
-      done()
-    })
-  })
-
-  it('shouldn\'t parse a non-image url into markdown syntax', function (done) {
-    var testBody = 'http://images.google.com/path/index.html'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, testBody) // should be the same
-      done()
-    })
-  })
-
-  it('shouldn\'t convert image names', function (done) {
-    var testBody = 'that unicorn.jpg was really cool'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, testBody) // should be the same
-      done()
-    })
-  })
-
-  it('shouldn\'t convert markdown syntax', function (done) {
-    var testBody = '![markdown.jpg](http://images.google.com/images/markdown.jpg)'
-    var data = createPayload(testBody)
-    imgbed.parse(data, function (err, data) {
-      testEquals(err, data, testBody) // should be the same
-      done()
+  should_not.forEach(function (test) {
+    it('shouldn\'t ' + test.desc, function (done) {
+      var data = createPayload(test.body)
+      imgbed.parse(data, function (err, data) {
+        testEquals(err, data, test.body) // should be the same
+        done()
+      })
     })
   })
 })
