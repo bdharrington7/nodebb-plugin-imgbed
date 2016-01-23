@@ -25,8 +25,8 @@
     "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed/issues"
   },
   "dependencies": {
-    "xregexp": "~2.0.0",
-    "mkdirp": "~0.3.0",
+    "xregexp": "3.0.x",
+    "mkdirp": "0.5.x",
     "winston": "^0.8.3"
   },
   "devDependencies": {
