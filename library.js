@@ -5,6 +5,7 @@
   var winston = require('winston')
   var path = require('path')
   var nodejsUrl = require('url')
+  var CacheLRU = require('cache-lru')
   var XRegExp = require('xregexp').XRegExp
   var Settings = module.parent.require('./settings')
   var Cache = module.parent.require('./posts/cache')
@@ -44,6 +45,7 @@
 
   var regex
   var regexStr
+  var localCache
 
   // takes care of changing and downloading the url if needed
   // opening parenthesis, if present, signifies that this is already markdownified
@@ -84,15 +86,25 @@
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')
     winston.info('Imgbed: regex recalculated: ' + regexStr)
+    localCache = new CacheLRU()
+    localCache.limit(3)
+    winston.info('Imgbed: cache initialized to size 3')
   }
 
   Imgbed.parseRaw = function (content, callback) {
     if (!content) {
       return callback(null, content)
     }
-    var parsedContent = XRegExp.replace(content, regex, function (match) {
-      return convertToMarkdown(match.paren, match.url)
-    })
+    var parsedContent = localCache.get(content)
+    if (!parsedContent) {
+      if (debug) {
+        winston.info('Imgbed: cache miss')
+      }
+      parsedContent = XRegExp.replace(content, regex, function (match) {
+        return convertToMarkdown(match.paren, match.url)
+      })
+      localCache.set(content, parsedContent)
+    }
 
     callback(null, parsedContent)
   }
