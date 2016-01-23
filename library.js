@@ -79,7 +79,7 @@
       return str.trim()
     })
 
-    regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + ')(\\?[a-zA-Z0-9_\\&\\=]*)?)'
+    regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\\/\\/[^\\s]+\\.(' + extensionsArr.join('|') + ')([\\/\\?]?[a-zA-Z0-9_\\&\\=\\?\\/]*)?)'
 
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')
