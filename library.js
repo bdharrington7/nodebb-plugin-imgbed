@@ -49,19 +49,20 @@
   // opening parenthesis, if present, signifies that this is already markdownified
   // this is needed because JS has no negative lookbehind
   var convertToMarkdown = function (paren, rawUrl) {
+    if (paren) {
+      return paren + rawUrl // return whole match, nothing to do
+    }
+
     if (debug) {
       winston.info('Imgbed: converting url: ' + rawUrl)
     }
+
     // just change the matching urls to markdown syntax
     var markdownVal = '![' + path.basename(nodejsUrl.parse(rawUrl).pathname) + '](' + rawUrl + ')'
     if (debug) {
       winston.info('...url converted to: ' + markdownVal)
     }
-    if (paren) {
-      return paren + rawUrl // return whole match
-    }
     return markdownVal
-    // TODO: detect a markdown plugin installed and activated?
   }
 
   Imgbed.init = function () {
@@ -78,23 +79,36 @@
       return str.trim()
     })
 
-    regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\/\/[^\\s]+\\.(' + extensionsArr.join('|') + ')(\\?[a-zA-Z0-9_\\&\\=]*)?)'
+    regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\\/\\/[^\\s]+\\.(' + extensionsArr.join('|') + ')([\\/\\?]?[a-zA-Z0-9_\\&\\=\\?\\/]*)?)'
 
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')
     winston.info('Imgbed: regex recalculated: ' + regexStr)
   }
 
-  Imgbed.parse = function (data, callback) {
-    if (!data || !data.postData || !data.postData.content) {
-      return callback(null, data)
+  Imgbed.parseRaw = function (content, callback) {
+    if (!content) {
+      return callback(null, content)
     }
-
-    data.postData.content = XRegExp.replace(data.postData.content, regex, function (match) {
+    var parsedContent = XRegExp.replace(content, regex, function (match) {
       return convertToMarkdown(match.paren, match.url)
     })
 
-    callback(null, data)
+    callback(null, parsedContent)
+  }
+
+  Imgbed.parse = function (data, callback) {
+    if (!data || !data.postData) {
+      return callback(null, data)
+    }
+
+    Imgbed.parseRaw(data.postData.content, function (err, content) {
+      if (err) {
+        callback(err, data)
+      }
+      data.postData.content = content
+      callback(null, data)
+    })
   }
 
   Imgbed.onLoad = function (params, callback) {
