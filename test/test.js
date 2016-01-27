@@ -83,7 +83,7 @@ describe('parse_to_markdown', function () {
       output: '![10556276_10205923028580508_6898116064636149990_n.jpg](https://scontent-sjc2-1.xx.fbcdn.net/hphotos-xtf1/v/t1.0-9/10556276_10205923028580508_6898116064636149990_n.jpg?oh=b76c8570670331d831d04ec146aeb6b5&o_e=5736A9F2)'},
       {desc: 'handle weird query strings',
       body: 'http://vignette2.wikia.nocookie.net/monster/images/c/c4/Unicorn.jpg/revision/latest?cb=20090425203919',
-      output: '![latest](http://vignette2.wikia.nocookie.net/monster/images/c/c4/Unicorn.jpg/revision/latest?cb=20090425203919)'}, // not really what I wanted...
+      output: '![Unicorn.jpg](http://vignette2.wikia.nocookie.net/monster/images/c/c4/Unicorn.jpg/revision/latest?cb=20090425203919)'},
     {desc: 'parse multiple images into markdown syntax',
       body: 'http://images.google.com/path/image_one.jpg \n https://images.google.com/anotherpath/image_two.gif',
       output: '![image_one.jpg](http://images.google.com/path/image_one.jpg) \n ![image_two.gif](https://images.google.com/anotherpath/image_two.gif)'}
@@ -94,6 +94,8 @@ describe('parse_to_markdown', function () {
       body: 'http://images.google.com/path/index.html'},
     {desc: 'convert image names',
       body: 'that unicorn.jpg was really cool'},
+    {desc: 'convert imperfect markdown syntax',
+      body: '![markdown.jpg](  http://images.google.com/images/markdown.jpg )'},
     {desc: 'convert markdown syntax',
       body: '![markdown.jpg](http://images.google.com/images/markdown.jpg)'}
   ]

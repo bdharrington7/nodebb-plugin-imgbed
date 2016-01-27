@@ -3,10 +3,9 @@
 (function (module) {
   'use strict'
   var winston = require('winston')
-  var path = require('path')
-  var nodejsUrl = require('url')
   var CacheLRU = require('cache-lru')
-  var XRegExp = require('xregexp').XRegExp
+  var merge = require('lodash.merge')
+  var XRegExp = merge(require('xregexp').XRegExp, require('xregexp-lookbehind'))
   var Settings = module.parent.require('./settings')
   var Cache = module.parent.require('./posts/cache')
   var SocketAdmin = module.parent.require('./socket.io/admin')
@@ -47,26 +46,6 @@
   var regexStr
   var localCache
 
-  // takes care of changing and downloading the url if needed
-  // opening parenthesis, if present, signifies that this is already markdownified
-  // this is needed because JS has no negative lookbehind
-  var convertToMarkdown = function (paren, rawUrl) {
-    if (paren) {
-      return paren + rawUrl // return whole match, nothing to do
-    }
-
-    if (debug) {
-      winston.info('Imgbed: converting url: ' + rawUrl)
-    }
-
-    // just change the matching urls to markdown syntax
-    var markdownVal = '![' + path.basename(nodejsUrl.parse(rawUrl).pathname) + '](' + rawUrl + ')'
-    if (debug) {
-      winston.info('...url converted to: ' + markdownVal)
-    }
-    return markdownVal
-  }
-
   Imgbed.init = function () {
     var userExt = settings.get('strings.extensions')
     if (debug) {
@@ -81,11 +60,11 @@
       return str.trim()
     })
 
-    regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\\/\\/[^\\s]+\\.(' + extensionsArr.join('|') + ')([\\/\\?]?[a-zA-Z0-9_\\&\\=\\?\\/]*)?)'
+    regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>\\w+\\.(' + extensionsArr.join('|') + '))([\\/\\?]?[a-zA-Z0-9_\\&\\=\\?\\/]*)?)'
 
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')
-    winston.info('Imgbed: regex recalculated: ' + regexStr)
+    winston.info('Imgbed: regex recompiled: ' + regexStr)
     localCache = new CacheLRU()
     localCache.limit(3)
     winston.info('Imgbed: cache initialized to size 3')
@@ -100,9 +79,10 @@
       if (debug) {
         winston.info('Imgbed: cache miss')
       }
-      parsedContent = XRegExp.replace(content, regex, function (match) {
-        return convertToMarkdown(match.paren, match.url)
-      })
+      // parsedContent = XRegExp.replace(content, regex, function (match) {
+      //   return getEmbedSyntax(match.paren, match.url)
+      // })
+      parsedContent = XRegExp.replaceLb(content, '(?<!\\(\\s*)', regex, '![${filename}](${url})')
       localCache.set(content, parsedContent)
     }
 
