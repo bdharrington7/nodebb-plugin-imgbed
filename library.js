@@ -43,7 +43,9 @@
   var Imgbed = {}
 
   var regex
+  var preString
   var regexStr
+  var embedSyntax
   var localCache
 
   Imgbed.init = function () {
@@ -61,6 +63,8 @@
     })
 
     regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>[\\w_0-9\\-\\.]+\\.(' + extensionsArr.join('|') + '))([^\\s]*)?)'
+    preString = '('
+    embedSyntax = '![${filename}](${url})'
 
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')
@@ -79,10 +83,8 @@
       if (debug) {
         winston.info('Imgbed: cache miss')
       }
-      // parsedContent = XRegExp.replace(content, regex, function (match) {
-      //   return getEmbedSyntax(match.paren, match.url)
-      // })
-      parsedContent = XRegExp.replaceLb(content, '(?<!\\(\\s*)', regex, '![${filename}](${url})')
+
+      parsedContent = XRegExp.replaceLb(content, '(?<!\\' + preString + '\\s*)', regex, embedSyntax)
       localCache.set(content, parsedContent)
     }
 
