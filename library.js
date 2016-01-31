@@ -26,7 +26,8 @@
       hasMarkdown: true
     },
     strings: {
-      extensions: 'jpg,jpeg,gif,gifv,png,svg'
+      extensions: 'jpg,jpeg,gif,gifv,png,svg',
+      parseMode: 'markdown'
     }
   }
 
@@ -50,8 +51,10 @@
 
   Imgbed.init = function () {
     var userExt = settings.get('strings.extensions')
+    var parseMode = settings.get('strings.parseMode')
     if (debug) {
       winston.info('Imgbed: user defined extensions is ' + userExt)
+      winston.info('Imgbed: parse mode is ' + parseMode)
     }
 
     var extensionsArr = (userExt && userExt.length > 0)
@@ -63,8 +66,21 @@
     })
 
     regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>[\\w_0-9\\-\\.]+\\.(' + extensionsArr.join('|') + '))([^\\s]*)?)'
-    preString = '('
-    embedSyntax = '![${filename}](${url})'
+
+    switch (parseMode) {
+      case 'html':
+        preString = 'src\\s*\\=\\s*\\"'
+        embedSyntax = '<img src="${url}" alt="${filename}" title="${filename}">'
+        break
+      case 'bbcode':
+        preString = '\\[img[^\\]]*\\]'
+        embedSyntax = '[img alt="${filename}" title="${filename}"]${url}[/img]'
+        break
+      default: // markdown
+        preString = '\\('
+        embedSyntax = '![${filename}](${url})'
+        break
+    }
 
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')
@@ -84,7 +100,7 @@
         winston.info('Imgbed: cache miss')
       }
 
-      parsedContent = XRegExp.replaceLb(content, '(?<!\\' + preString + '\\s*)', regex, embedSyntax)
+      parsedContent = XRegExp.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
       localCache.set(content, parsedContent)
     }
 
