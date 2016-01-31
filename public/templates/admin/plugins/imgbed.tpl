@@ -4,20 +4,28 @@
 			<div class="panel-heading">Imgbed Settings</div>
 				<div class="panel-body">
 
-			<!-- <h3>Options</h3> -->
-
 				<form id="imgbed_acp" class="form imgbed-settings">
 					<div class="row">
 						<div class="col-lg-4 col-md-6">
 							<div class="form-group">
 								<h3>Allowed Extensions</h3>
-								Please input a comma-separated list of image extensions that are allowed
+								Comma-separated list of image extensions that are allowed:
 								<input
 									id="extensions"
 									class="form-control"
 									type="text"
 									placeholder="jpeg,jpg,gif,gifv,png,svg"
 									data-key="strings.extensions" />
+                <h3>Parsing Mode</h3>
+                Parsing mode
+                <select
+                  id="parseMode"
+                  class="form-control"
+                  data-key="strings.parseMode">
+                  <option>markdown</option>
+                  <option>bbcode</option>
+                  <option>html</option>
+                </select>
 							</div>
 						</div>
 						<div class="col-lg-4 col-md-6">
@@ -28,11 +36,11 @@
 										<button class="btn btn-primary" id="save">Save Settings</button>
 									<!-- </div>
 									<div class="row"> -->
-										<div class="alert alert-warning">
+										<div class="panel panel-warning">
 											<strong><i class="icon-warning-sign"></i>Clear the posts cache</strong>
 											<p>
 												To have your changes take effect immediately, you will need to clear the
-												posts cache, which can have an effect on performance.
+												posts cache, which can have a short-term effect on performance.
 											</p>
 											<button class="btn btn-primary" id="clearPostCache">Clear Posts cache</button>
 										</div>
@@ -66,15 +74,6 @@
 								message: 'Posts cache cleared successfully'
 							});
 						});
-						// can we communicate the other direction?
-						// socket.on('admin.settings.postCacheCleared', function(data){
-						// 	app.alert({
-						// 		type: 'success',
-						// 		alert-id: 'imgbed-post-cache-cleared',
-						// 		title: 'Success',
-						// 		message: 'Posts cache cleared successfully'
-						// 	});
-						// });
 					});
 				</script>
 			</div>
