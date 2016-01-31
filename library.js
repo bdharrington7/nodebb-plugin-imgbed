@@ -34,7 +34,7 @@
     winston.info('Imgbed in debug mode!')
   }
 
-  var settings = new Settings('imgbed', '0.1.1', defaultSettings, function () {
+  var settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
     if (debug) {
       winston.info('Imgbed settings loaded')
     }
@@ -60,7 +60,7 @@
       return str.trim()
     })
 
-    regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>\\w+\\.(' + extensionsArr.join('|') + '))([\\/\\?]?[a-zA-Z0-9_\\&\\=\\?\\/]*)?)'
+    regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>[\\w_0-9\\-\\.]+\\.(' + extensionsArr.join('|') + '))([^\\s]*)?)'
 
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')

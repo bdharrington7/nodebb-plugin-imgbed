@@ -86,7 +86,10 @@ describe('parse_to_markdown', function () {
       output: '![Unicorn.jpg](http://vignette2.wikia.nocookie.net/monster/images/c/c4/Unicorn.jpg/revision/latest?cb=20090425203919)'},
     {desc: 'parse multiple images into markdown syntax',
       body: 'http://images.google.com/path/image_one.jpg \n https://images.google.com/anotherpath/image_two.gif',
-      output: '![image_one.jpg](http://images.google.com/path/image_one.jpg) \n ![image_two.gif](https://images.google.com/anotherpath/image_two.gif)'}
+      output: '![image_one.jpg](http://images.google.com/path/image_one.jpg) \n ![image_two.gif](https://images.google.com/anotherpath/image_two.gif)'},
+    {desc: 'handle POSIX fully portable filenames',
+      body: 'http://images.google.com/path/image.name-ONE_oh3424.jpg\n',
+      output: '![image.name-ONE_oh3424.jpg](http://images.google.com/path/image.name-ONE_oh3424.jpg)\n'}
   ]
 
   var should_not = [
@@ -97,7 +100,9 @@ describe('parse_to_markdown', function () {
     {desc: 'convert imperfect markdown syntax',
       body: '![markdown.jpg](  http://images.google.com/images/markdown.jpg )'},
     {desc: 'convert markdown syntax',
-      body: '![markdown.jpg](http://images.google.com/images/markdown.jpg)'}
+      body: '![markdown.jpg](http://images.google.com/images/markdown.jpg)'},
+    {desc: 'convert parenthesized urls',
+      body: 'something something (  http://images.google.com/images/markdown.jpg ) something else'}
   ]
 
   // test loops
