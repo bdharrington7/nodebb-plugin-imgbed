@@ -14,7 +14,7 @@
   var constants = Object.freeze({
     'name': 'Imgbed',
     'admin': {
-      'route': '/plugins/imgbed/',
+      'route': '/plugins/imgbed',
       'icon': 'fa-th-large',
       'name': 'Imgbed'
     },
