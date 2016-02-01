@@ -28,7 +28,9 @@
     "xregexp": "3.0.x",
     "mkdirp": "0.5.x",
     "winston": "^0.8.3",
-    "cache-lru": "1.0.x"
+    "cache-lru": "1.0.x",
+    "lodash.merge": "4.0.x",
+    "xregexp-lookbehind": "1.0.x"
   },
   "devDependencies": {
     "standard": "5.4.x",
