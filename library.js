@@ -3,10 +3,9 @@
 (function (module) {
   'use strict'
   var winston = require('winston')
-  var path = require('path')
-  var nodejsUrl = require('url')
   var CacheLRU = require('cache-lru')
-  var XRegExp = require('xregexp').XRegExp
+  var merge = require('lodash.merge')
+  var XRegExp = merge(require('xregexp').XRegExp, require('xregexp-lookbehind'))
   var Settings = module.parent.require('./settings')
   var Cache = module.parent.require('./posts/cache')
   var SocketAdmin = module.parent.require('./socket.io/admin')
@@ -15,7 +14,7 @@
   var constants = Object.freeze({
     'name': 'Imgbed',
     'admin': {
-      'route': '/plugins/imgbed/',
+      'route': '/plugins/imgbed',
       'icon': 'fa-th-large',
       'name': 'Imgbed'
     },
@@ -27,7 +26,8 @@
       hasMarkdown: true
     },
     strings: {
-      extensions: 'jpg,jpeg,gif,gifv,png,svg'
+      extensions: 'jpg,jpeg,gif,gifv,png,svg',
+      parseMode: 'markdown'
     }
   }
 
@@ -35,7 +35,7 @@
     winston.info('Imgbed in debug mode!')
   }
 
-  var settings = new Settings('imgbed', '0.1.1', defaultSettings, function () {
+  var settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
     if (debug) {
       winston.info('Imgbed settings loaded')
     }
@@ -44,33 +44,17 @@
   var Imgbed = {}
 
   var regex
+  var preString
   var regexStr
+  var embedSyntax
   var localCache
-
-  // takes care of changing and downloading the url if needed
-  // opening parenthesis, if present, signifies that this is already markdownified
-  // this is needed because JS has no negative lookbehind
-  var convertToMarkdown = function (paren, rawUrl) {
-    if (paren) {
-      return paren + rawUrl // return whole match, nothing to do
-    }
-
-    if (debug) {
-      winston.info('Imgbed: converting url: ' + rawUrl)
-    }
-
-    // just change the matching urls to markdown syntax
-    var markdownVal = '![' + path.basename(nodejsUrl.parse(rawUrl).pathname) + '](' + rawUrl + ')'
-    if (debug) {
-      winston.info('...url converted to: ' + markdownVal)
-    }
-    return markdownVal
-  }
 
   Imgbed.init = function () {
     var userExt = settings.get('strings.extensions')
+    var parseMode = settings.get('strings.parseMode')
     if (debug) {
       winston.info('Imgbed: user defined extensions is ' + userExt)
+      winston.info('Imgbed: parse mode is ' + parseMode)
     }
 
     var extensionsArr = (userExt && userExt.length > 0)
@@ -81,11 +65,26 @@
       return str.trim()
     })
 
-    regexStr = '(?<paren>[\\(]\\s*)?(?<url>https?:\\/\\/[^\\s]+\\.(' + extensionsArr.join('|') + ')([\\/\\?]?[a-zA-Z0-9_\\&\\=\\?\\/]*)?)'
+    regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>[\\w_0-9\\-\\.]+\\.(' + extensionsArr.join('|') + '))([^\\s]*)?)'
+
+    switch (parseMode) {
+      case 'html':
+        preString = 'src\\s*\\=\\s*\\"'
+        embedSyntax = '<img src="${url}" alt="${filename}" title="${filename}">'
+        break
+      case 'bbcode':
+        preString = '\\[img[^\\]]*\\]'
+        embedSyntax = '[img alt="${filename}" title="${filename}"]${url}[/img]'
+        break
+      default: // markdown
+        preString = '\\('
+        embedSyntax = '![${filename}](${url})'
+        break
+    }
 
     // declare regex as global and case-insensitive
     regex = XRegExp(regexStr, 'gi')
-    winston.info('Imgbed: regex recalculated: ' + regexStr)
+    winston.info('Imgbed: regex recompiled: ' + regexStr)
     localCache = new CacheLRU()
     localCache.limit(3)
     winston.info('Imgbed: cache initialized to size 3')
@@ -100,9 +99,8 @@
       if (debug) {
         winston.info('Imgbed: cache miss')
       }
-      parsedContent = XRegExp.replace(content, regex, function (match) {
-        return convertToMarkdown(match.paren, match.url)
-      })
+
+      parsedContent = XRegExp.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
       localCache.set(content, parsedContent)
     }
 
