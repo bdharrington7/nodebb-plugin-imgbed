@@ -39,6 +39,6 @@
     "rewire": "2.5.x"
   },
   "nbbpm": {
-    "compatibility": "0.6.x - 0.9.x"
+    "compatibility": "0.6.x - 1.x.x"
   }
 }
