@@ -5,7 +5,7 @@
   var winston = require('winston')
   var CacheLRU = require('cache-lru')
   var merge = require('lodash.merge')
-  var regexEngine = merge(require('xregexp').XRegExp, require('xregexp-lookbehind'))
+  var regexEngine = merge(require('xregexp'), require('xregexp-lookbehind'))
   var Settings = module.parent.require('./settings')
   var Cache = module.parent.require('./posts/cache')
   var SocketAdmin = module.parent.require('./socket.io/admin')
