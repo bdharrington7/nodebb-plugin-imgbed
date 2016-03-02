@@ -5,7 +5,7 @@
   var winston = require('winston')
   var CacheLRU = require('cache-lru')
   var merge = require('lodash.merge')
-  var XRegExp = merge(require('xregexp').XRegExp, require('xregexp-lookbehind'))
+  var regexEngine = merge(require('xregexp').XRegExp, require('xregexp-lookbehind'))
   var Settings = module.parent.require('./settings')
   var Cache = module.parent.require('./posts/cache')
   var SocketAdmin = module.parent.require('./socket.io/admin')
@@ -83,7 +83,7 @@
     }
 
     // declare regex as global and case-insensitive
-    regex = XRegExp(regexStr, 'gi')
+    regex = regexEngine(regexStr, 'gi')
     winston.info('Imgbed: regex recompiled: ' + regexStr)
     localCache = new CacheLRU()
     localCache.limit(3)
@@ -100,7 +100,7 @@
         winston.info('Imgbed: cache miss')
       }
 
-      parsedContent = XRegExp.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
+      parsedContent = regexEngine.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
       localCache.set(content, parsedContent)
     }
 
