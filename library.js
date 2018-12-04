@@ -6,9 +6,9 @@
   var CacheLRU = require('cache-lru')
   var merge = require('lodash.merge')
   var regexEngine = merge(require('xregexp'), require('xregexp-lookbehind'))
-  var Settings = module.parent.require('./settings')
-  var Cache = module.parent.require('./posts/cache')
-  var SocketAdmin = module.parent.require('./socket.io/admin')
+  var Settings = require.main.require('./src/settings')
+  var Cache = require.main.require('./src/posts/cache')
+  var SocketAdmin = require.main.require('./src/socket.io/admin')
   var debug
 
   var constants = Object.freeze({
