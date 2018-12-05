@@ -1,4 +1,4 @@
-/*global env:false */
+/* global env:false */
 
 (function (module) {
   'use strict'
@@ -58,8 +58,8 @@
     }
 
     var extensionsArr = (userExt && userExt.length > 0)
-        ? userExt.split(',')
-        : defaultSettings.strings.extensions.split(',')
+      ? userExt.split(',')
+      : defaultSettings.strings.extensions.split(',')
 
     extensionsArr = extensionsArr.map(function (str) {
       return str.trim()
@@ -70,15 +70,15 @@
     switch (parseMode) {
       case 'html':
         preString = 'src\\s*\\=\\s*\\"'
-        embedSyntax = '<img src="${url}" alt="${filename}" title="${filename}">'
+        embedSyntax = '<img src="${url}" alt="${filename}" title="${filename}">'  // eslint-disable-line
         break
       case 'bbcode':
         preString = '\\[img[^\\]]*\\]'
-        embedSyntax = '[img alt="${filename}" title="${filename}"]${url}[/img]'
+        embedSyntax = '[img alt="${filename}" title="${filename}"]${url}[/img]' // eslint-disable-line
         break
       default: // markdown
         preString = '\\('
-        embedSyntax = '![${filename}](${url})'
+        embedSyntax = '![${filename}](${url})'  // eslint-disable-line
         break
     }
 
@@ -151,13 +151,13 @@
   }
 
   Imgbed.admin = {
-    menu: function (custom_header, callback) {
-      custom_header.plugins.push({
+    menu: function (customHeader, callback) {
+      customHeader.plugins.push({
         'route': constants.admin.route,
         'icon': constants.admin.icon,
         'name': constants.admin.name
       })
-      callback(null, custom_header)
+      callback(null, customHeader)
     }
   }
   module.exports = Imgbed
