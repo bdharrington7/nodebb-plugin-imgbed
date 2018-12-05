@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-imgbed",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Creates an image tag to an image url that you post",
   "main": "library.js",
   "scripts": {
@@ -19,8 +19,8 @@
     "embed",
     "embedding"
   ],
-  "author": "Brian Harrington <BDHarrington7@gmail.com> (http://bdharrington.com/)",
-  "license": "Apache-2.0",
+  "author": "Brian Harrington <BDHarrington7@gmail.com> (https://bdharrington.com/)",
+  "license": "LGPL-3.0",
   "bugs": {
     "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed/issues"
   },
@@ -33,10 +33,10 @@
     "xregexp-lookbehind": "1.0.x"
   },
   "devDependencies": {
-    "standard": "5.4.x",
     "mocha": "2.3.x",
-    "mock-require": "1.2.x",
-    "rewire": "2.5.x"
+    "mockery": "^2.1.0",
+    "rewire": "2.5.x",
+    "standard": "5.4.x"
   },
   "nbbpm": {
     "compatibility": "0.6.x - 1.x.x"
