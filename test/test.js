@@ -1,13 +1,18 @@
 /*global it:false describe:false before:false */
 
-var assert = require('assert')
-var mock = require('mock-require')
-var rewire = require('rewire')
+const assert = require('assert')
+const mockery = require('mockery')
+const rewire = require('rewire')
 
-var settingsExtensions = 'jpg,jpeg,png,gif'
-var settingsParseMode = ''
+let settingsExtensions = 'jpg,jpeg,png,gif'
+let settingsParseMode = ''
 
-mock('./settings', function (name, version, defaultSettingsObj, cb) {
+mockery.enable({
+  warnOnReplace: false,
+  warnOnUnregistered: false
+})
+
+mockery.registerMock('./src/settings', function (name, version, defaultSettingsObj, cb) {
   return {
     get: function (parameter) {
       if (parameter === 'strings.extensions') {
@@ -20,13 +25,13 @@ mock('./settings', function (name, version, defaultSettingsObj, cb) {
   }
 })
 
-mock('./posts/cache', {
+mockery.registerMock('./src/posts/cache', {
   reset: function () {
     console.log('cache cleared')
   }
 })
 
-mock('./socket.io/admin', {
+mockery.registerMock('./src/socket.io/admin', {
   settings: {}
   // console.log ('called mock socket.io')
 })
