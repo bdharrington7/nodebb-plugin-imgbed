@@ -34,7 +34,7 @@
   "devDependencies": {
     "mocha": "^5.2.0",
     "mockery": "^2.1.0",
-    "rewire": "2.5.x",
+    "rewire": "^4.0.1",
     "standard": "^12.0.1"
   },
   "nbbpm": {
