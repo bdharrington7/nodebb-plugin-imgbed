@@ -1,4 +1,4 @@
-/*global env:false */
+/* global env:false */
 
 (function (module) {
   'use strict'
@@ -9,7 +9,15 @@
   var Settings = require.main.require('./src/settings')
   var Cache = require.main.require('./src/posts/cache')
   var SocketAdmin = require.main.require('./src/socket.io/admin')
-  var debug
+  var debug = false
+
+  const log = winston.createLogger({
+    level: debug ? 'debug' : 'info',
+    format: winston.format.simple(),
+    transports: [
+      new winston.transports.Console()
+    ]
+  })
 
   var constants = Object.freeze({
     'name': 'Imgbed',
@@ -32,12 +40,12 @@
   }
 
   if (debug) {
-    winston.info('Imgbed in debug mode!')
+    log.info('Imgbed in debug mode!')
   }
 
   var settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
     if (debug) {
-      winston.info('Imgbed settings loaded')
+      log.info('Imgbed settings loaded')
     }
   })
 
@@ -53,13 +61,13 @@
     var userExt = settings.get('strings.extensions')
     var parseMode = settings.get('strings.parseMode')
     if (debug) {
-      winston.info('Imgbed: user defined extensions is ' + userExt)
-      winston.info('Imgbed: parse mode is ' + parseMode)
+      log.info('Imgbed: user defined extensions is ' + userExt)
+      log.info('Imgbed: parse mode is ' + parseMode)
     }
 
     var extensionsArr = (userExt && userExt.length > 0)
-        ? userExt.split(',')
-        : defaultSettings.strings.extensions.split(',')
+      ? userExt.split(',')
+      : defaultSettings.strings.extensions.split(',')
 
     extensionsArr = extensionsArr.map(function (str) {
       return str.trim()
@@ -70,24 +78,24 @@
     switch (parseMode) {
       case 'html':
         preString = 'src\\s*\\=\\s*\\"'
-        embedSyntax = '<img src="${url}" alt="${filename}" title="${filename}">'
+        embedSyntax = '<img src="${url}" alt="${filename}" title="${filename}">'  // eslint-disable-line
         break
       case 'bbcode':
         preString = '\\[img[^\\]]*\\]'
-        embedSyntax = '[img alt="${filename}" title="${filename}"]${url}[/img]'
+        embedSyntax = '[img alt="${filename}" title="${filename}"]${url}[/img]' // eslint-disable-line
         break
       default: // markdown
         preString = '\\('
-        embedSyntax = '![${filename}](${url})'
+        embedSyntax = '![${filename}](${url})'  // eslint-disable-line
         break
     }
 
     // declare regex as global and case-insensitive
     regex = regexEngine(regexStr, 'gi')
-    winston.info('Imgbed: regex recompiled: ' + regexStr)
+    log.info('Imgbed: regex recompiled: ' + regexStr)
     localCache = new CacheLRU()
     localCache.limit(3)
-    winston.info('Imgbed: cache initialized to size 3')
+    log.info('Imgbed: cache initialized to size 3')
   }
 
   Imgbed.parseRaw = function (content, callback) {
@@ -97,7 +105,7 @@
     var parsedContent = localCache.get(content)
     if (!parsedContent) {
       if (debug) {
-        winston.info('Imgbed: cache miss')
+        log.info('Imgbed: cache miss')
       }
 
       parsedContent = regexEngine.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
@@ -137,27 +145,27 @@
 
   SocketAdmin.settings.syncImgbed = function (data) {
     if (debug) {
-      winston.info('Imgbed: syncing settings')
+      log.info('Imgbed: syncing settings')
     }
     settings.sync(Imgbed.init)
   }
 
   SocketAdmin.settings.clearPostCache = function (data) {
     if (debug) {
-      winston.info('Clearing all posts from cache')
+      log.info('Clearing all posts from cache')
     }
     Cache.reset()
     // SocketAdmin.emit('admin.settings.postCacheCleared', {});
   }
 
   Imgbed.admin = {
-    menu: function (custom_header, callback) {
-      custom_header.plugins.push({
+    menu: function (customHeader, callback) {
+      customHeader.plugins.push({
         'route': constants.admin.route,
         'icon': constants.admin.icon,
         'name': constants.admin.name
       })
-      callback(null, custom_header)
+      callback(null, customHeader)
     }
   }
   module.exports = Imgbed
