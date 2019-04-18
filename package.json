@@ -20,7 +20,7 @@
     "embedding"
   ],
   "author": "Brian Harrington <BDHarrington7@gmail.com> (https://bdharrington.com/)",
-  "license": "LGPL-3.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed/issues"
   },
