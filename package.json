@@ -26,7 +26,6 @@
   },
   "dependencies": {
     "cache-lru": "1.1.5",
-    "lodash.merge": "4.6.1",
     "winston": "3.1.0",
     "xregexp": "4.2.0",
     "xregexp-lookbehind": "1.0.x"

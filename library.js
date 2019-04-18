@@ -4,8 +4,7 @@
   'use strict'
   var winston = require('winston')
   var CacheLRU = require('cache-lru')
-  var merge = require('lodash.merge')
-  var regexEngine = merge(require('xregexp'), require('xregexp-lookbehind'))
+  var regexEngine = Object.assign(require('xregexp'), require('xregexp-lookbehind'))
   var Settings = require.main.require('./src/settings')
   var Cache = require.main.require('./src/posts/cache')
   var SocketAdmin = require.main.require('./src/socket.io/admin')
