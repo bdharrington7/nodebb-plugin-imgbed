@@ -6,7 +6,9 @@
   "scripts": {
     "lint": "standard",
     "test": "mocha test/test.js",
-    "posttest": "npm run lint"
+    "posttest": "npm run lint",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -28,7 +30,8 @@
     "cache-lru": "1.1.5",
     "winston": "^3.2.1",
     "xregexp": "4.2.4",
-    "xregexp-lookbehind": "1.0.x"
+    "xregexp-lookbehind": "1.0.x",
+    "snyk": "^1.192.4"
   },
   "devDependencies": {
     "mocha": "^5.2.0",
@@ -41,5 +44,6 @@
   },
   "engines": {
     "node": ">=6"
-  }
+  },
+  "snyk": true
 }
