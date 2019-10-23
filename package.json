@@ -5,6 +5,7 @@
   "main": "library.js",
   "scripts": {
     "lint": "standard",
+    "lint:fix": "standard --fix",
     "test": "mocha test/test.js",
     "posttest": "npm run lint"
   },
@@ -25,16 +26,16 @@
     "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed/issues"
   },
   "dependencies": {
-    "cache-lru": "1.1.5",
+    "cache-lru": "^1.1.9",
     "winston": "^3.2.1",
     "xregexp": "4.2.4",
     "xregexp-lookbehind": "1.0.x"
   },
   "devDependencies": {
-    "mocha": "^5.2.0",
+    "mocha": "^6.2.2",
     "mockery": "^2.1.0",
     "rewire": "^4.0.1",
-    "standard": "^12.0.1"
+    "standard": "^14.3.1"
   },
   "nbbpm": {
     "compatibility": "1.x.x"
