@@ -39,12 +39,13 @@
   let preString
   let embedSyntax
   let localCache
+  let settings
 
   Imgbed.init = function () {
     dev = env === 'development'
 
     const logFormat = printf(({ level, message, label, timestamp }) => {
-      return `${timestamp} - ${level}: [${label}] ${message}`;
+      return `${timestamp} - ${level}: [${label}] ${message}`
     })
 
     const formats = []
@@ -53,7 +54,7 @@
     }
     formats.push(
       timestamp(),
-      label({ label: 'plugin:Imgbed'}),
+      label({ label: 'plugin:Imgbed' }),
       logFormat
     )
     log = createLogger({
@@ -63,7 +64,7 @@
         new transports.Console()
       ]
     })
-    const settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
+    settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
       log.debug('Settings loaded.')
     })
     const userExt = settings.get('strings.extensions')
