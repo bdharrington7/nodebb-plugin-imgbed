@@ -2,18 +2,38 @@
 
 (function (module) {
   'use strict'
-  const winston = require('winston')
+  const { createLogger, format, transports } = require('winston')
+  const { combine, colorize, label, timestamp, printf } = format
   const CacheLRU = require('cache-lru')
   const regexEngine = Object.assign(require('xregexp'), require('xregexp-lookbehind'))
   const Settings = require.main.require('./src/settings')
   const Cache = require.main.require('./src/posts/cache')
   const SocketAdmin = require.main.require('./src/socket.io/admin')
+  const CACHE_SIZE = 3
 
-  const log = winston.createLogger({
-    level: (env === 'development') ? 'debug' : 'info',
-    format: winston.format.simple(),
+  function isDev() {
+    return env === 'development'
+  }
+
+  const logFormat = printf(({ level, message, label, timestamp }) => {
+    return `${timestamp} - ${level}: [${label}] ${message}`;
+  })
+
+  const formats = []
+  if (isDev()) {
+    formats.push(colorize())
+  }
+  formats.push(
+    timestamp(),
+    label({ label: 'plugin:Imgbed'}),
+    logFormat
+   )
+
+  const log = createLogger({
+    level: isDev() ? 'debug' : 'info',
+    format: combine(...formats),
     transports: [
-      new winston.transports.Console()
+      new transports.Console()
     ]
   })
 
@@ -37,10 +57,8 @@
     }
   }
 
-  log.debug('Imgbed in debug mode!')
-
   const settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
-    log.debug('Imgbed settings loaded')
+    log.debug('Settings loaded.')
   })
 
   const Imgbed = {}
@@ -53,8 +71,8 @@
   Imgbed.init = function () {
     const userExt = settings.get('strings.extensions')
     const parseMode = settings.get('strings.parseMode')
-    log.debug('Imgbed: user defined extensions is ' + userExt)
-    log.debug('Imgbed: parse mode is ' + parseMode)
+    log.debug(`User defined extensions are ${userExt}`)
+    log.debug(`Parse mode is ${parseMode}`)
 
     let extensionsArr = (userExt && userExt.length > 0)
       ? userExt.split(',')
@@ -83,10 +101,10 @@
 
     // declare regex as global and case-insensitive
     regex = regexEngine(regexStr, 'gi')
-    log.info('Imgbed: regex recompiled: ' + regexStr)
+    log.info(`Regex recompiled: ${regexStr}`)
     localCache = new CacheLRU()
-    localCache.limit(3)
-    log.info('Imgbed: cache initialized to size 3')
+    localCache.limit(CACHE_SIZE)
+    log.info(`Cache initialized to size ${CACHE_SIZE}`)
   }
 
   Imgbed.parseRaw = function (content, callback) {
@@ -95,7 +113,7 @@
     }
     let parsedContent = localCache.get(content)
     if (!parsedContent) {
-      log.debug('Imgbed: cache miss')
+      log.debug('Cache miss')
 
       parsedContent = regexEngine.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
       localCache.set(content, parsedContent)
@@ -131,7 +149,7 @@
   }
 
   SocketAdmin.settings.syncImgbed = function (data) {
-    log.debug('Imgbed: syncing settings')
+    log.debug('Syncing settings...')
     settings.sync(Imgbed.init)
   }
 
