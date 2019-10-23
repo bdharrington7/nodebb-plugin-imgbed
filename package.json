@@ -41,6 +41,6 @@
     "compatibility": "1.x.x"
   },
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   }
 }
