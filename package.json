@@ -25,7 +25,7 @@
     "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed/issues"
   },
   "dependencies": {
-    "cache-lru": "1.1.5",
+    "cache-lru": "^1.1.9",
     "winston": "^3.2.1",
     "xregexp": "4.2.4",
     "xregexp-lookbehind": "1.0.x"
