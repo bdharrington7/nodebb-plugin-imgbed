@@ -5,37 +5,13 @@
   const { createLogger, format, transports } = require('winston')
   const { combine, colorize, label, timestamp, printf } = format
   const CacheLRU = require('cache-lru')
-  const regexEngine = Object.assign(require('xregexp'), require('xregexp-lookbehind'))
   const Settings = require.main.require('./src/settings')
   const Cache = require.main.require('./src/posts/cache')
   const SocketAdmin = require.main.require('./src/socket.io/admin')
   const CACHE_SIZE = 3
 
-  function isDev() {
-    return env === 'development'
-  }
-
-  const logFormat = printf(({ level, message, label, timestamp }) => {
-    return `${timestamp} - ${level}: [${label}] ${message}`;
-  })
-
-  const formats = []
-  if (isDev()) {
-    formats.push(colorize())
-  }
-  formats.push(
-    timestamp(),
-    label({ label: 'plugin:Imgbed'}),
-    logFormat
-   )
-
-  const log = createLogger({
-    level: isDev() ? 'debug' : 'info',
-    format: combine(...formats),
-    transports: [
-      new transports.Console()
-    ]
-  })
+  let dev = false
+  let log = console
 
   var constants = Object.freeze({
     name: 'Imgbed',
@@ -57,10 +33,6 @@
     }
   }
 
-  const settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
-    log.debug('Settings loaded.')
-  })
-
   const Imgbed = {}
 
   let regex
@@ -69,6 +41,31 @@
   let localCache
 
   Imgbed.init = function () {
+    dev = env === 'development'
+
+    const logFormat = printf(({ level, message, label, timestamp }) => {
+      return `${timestamp} - ${level}: [${label}] ${message}`;
+    })
+
+    const formats = []
+    if (dev) {
+      formats.push(colorize())
+    }
+    formats.push(
+      timestamp(),
+      label({ label: 'plugin:Imgbed'}),
+      logFormat
+    )
+    log = createLogger({
+      level: dev ? 'debug' : 'info',
+      format: combine(...formats),
+      transports: [
+        new transports.Console()
+      ]
+    })
+    const settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
+      log.debug('Settings loaded.')
+    })
     const userExt = settings.get('strings.extensions')
     const parseMode = settings.get('strings.parseMode')
     log.debug(`User defined extensions are ${userExt}`)
@@ -87,20 +84,20 @@
     switch (parseMode) {
       case 'html':
         preString = 'src\\s*\\=\\s*\\"'
-        embedSyntax = '<img src="${url}" alt="${filename}" title="${filename}">'  // eslint-disable-line
+        embedSyntax = '<img src="$<url>" alt="$<filename>" title="$<filename>">'  // eslint-disable-line
         break
       case 'bbcode':
         preString = '\\[img[^\\]]*\\]'
-        embedSyntax = '[img alt="${filename}" title="${filename}"]${url}[/img]' // eslint-disable-line
+        embedSyntax = '[img alt="$<filename>" title="$<filename>"]$<url>[/img]' // eslint-disable-line
         break
       default: // markdown
         preString = '\\('
-        embedSyntax = '![${filename}](${url})'  // eslint-disable-line
+        embedSyntax = '![$<filename>]($<url>)'  // eslint-disable-line
         break
     }
 
     // declare regex as global and case-insensitive
-    regex = regexEngine(regexStr, 'gi')
+    regex = new RegExp('(?<!' + preString + '\\s*)' + regexStr, 'gi')
     log.info(`Regex recompiled: ${regexStr}`)
     localCache = new CacheLRU()
     localCache.limit(CACHE_SIZE)
@@ -115,7 +112,7 @@
     if (!parsedContent) {
       log.debug('Cache miss')
 
-      parsedContent = regexEngine.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
+      parsedContent = content.replace(regex, embedSyntax)
       localCache.set(content, parsedContent)
     }
 
