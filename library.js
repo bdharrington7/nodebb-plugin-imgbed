@@ -19,13 +19,13 @@
   })
 
   var constants = Object.freeze({
-    'name': 'Imgbed',
-    'admin': {
-      'route': '/plugins/imgbed',
-      'icon': 'fa-th-large',
-      'name': 'Imgbed'
+    name: 'Imgbed',
+    admin: {
+      route: '/plugins/imgbed',
+      icon: 'fa-th-large',
+      name: 'Imgbed'
     },
-    'namespace': 'nodebb-plugin-imgbed'
+    namespace: 'nodebb-plugin-imgbed'
   })
 
   var defaultSettings = {
@@ -160,9 +160,9 @@
   Imgbed.admin = {
     menu: function (customHeader, callback) {
       customHeader.plugins.push({
-        'route': constants.admin.route,
-        'icon': constants.admin.icon,
-        'name': constants.admin.name
+        route: constants.admin.route,
+        icon: constants.admin.icon,
+        name: constants.admin.name
       })
       callback(null, customHeader)
     }
