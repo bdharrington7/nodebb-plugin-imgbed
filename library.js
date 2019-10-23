@@ -2,16 +2,15 @@
 
 (function (module) {
   'use strict'
-  var winston = require('winston')
-  var CacheLRU = require('cache-lru')
-  var regexEngine = Object.assign(require('xregexp'), require('xregexp-lookbehind'))
-  var Settings = require.main.require('./src/settings')
-  var Cache = require.main.require('./src/posts/cache')
-  var SocketAdmin = require.main.require('./src/socket.io/admin')
-  var debug = false
+  const winston = require('winston')
+  const CacheLRU = require('cache-lru')
+  const regexEngine = Object.assign(require('xregexp'), require('xregexp-lookbehind'))
+  const Settings = require.main.require('./src/settings')
+  const Cache = require.main.require('./src/posts/cache')
+  const SocketAdmin = require.main.require('./src/socket.io/admin')
 
   const log = winston.createLogger({
-    level: debug ? 'debug' : 'info',
+    level: (env === 'development') ? 'debug' : 'info',
     format: winston.format.simple(),
     transports: [
       new winston.transports.Console()
@@ -38,33 +37,26 @@
     }
   }
 
-  if (debug) {
-    log.info('Imgbed in debug mode!')
-  }
+  log.debug('Imgbed in debug mode!')
 
-  var settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
-    if (debug) {
-      log.info('Imgbed settings loaded')
-    }
+  const settings = new Settings('imgbed', '0.2.0', defaultSettings, function () {
+    log.debug('Imgbed settings loaded')
   })
 
-  var Imgbed = {}
+  const Imgbed = {}
 
-  var regex
-  var preString
-  var regexStr
-  var embedSyntax
-  var localCache
+  let regex
+  let preString
+  let embedSyntax
+  let localCache
 
   Imgbed.init = function () {
-    var userExt = settings.get('strings.extensions')
-    var parseMode = settings.get('strings.parseMode')
-    if (debug) {
-      log.info('Imgbed: user defined extensions is ' + userExt)
-      log.info('Imgbed: parse mode is ' + parseMode)
-    }
+    const userExt = settings.get('strings.extensions')
+    const parseMode = settings.get('strings.parseMode')
+    log.debug('Imgbed: user defined extensions is ' + userExt)
+    log.debug('Imgbed: parse mode is ' + parseMode)
 
-    var extensionsArr = (userExt && userExt.length > 0)
+    let extensionsArr = (userExt && userExt.length > 0)
       ? userExt.split(',')
       : defaultSettings.strings.extensions.split(',')
 
@@ -72,7 +64,7 @@
       return str.trim()
     })
 
-    regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>[\\w_0-9\\-\\.]+\\.(' + extensionsArr.join('|') + '))([^\\s]*)?)'
+    const regexStr = '(?<url>https?:\\/\\/[^\\s]+\\/(?<filename>[\\w_0-9\\-\\.]+\\.(' + extensionsArr.join('|') + '))([^\\s]*)?)'
 
     switch (parseMode) {
       case 'html':
@@ -101,11 +93,9 @@
     if (!content) {
       return callback(null, content)
     }
-    var parsedContent = localCache.get(content)
+    let parsedContent = localCache.get(content)
     if (!parsedContent) {
-      if (debug) {
-        log.info('Imgbed: cache miss')
-      }
+      log.debug('Imgbed: cache miss')
 
       parsedContent = regexEngine.replaceLb(content, '(?<!' + preString + '\\s*)', regex, embedSyntax)
       localCache.set(content, parsedContent)
@@ -129,8 +119,6 @@
   }
 
   Imgbed.onLoad = function (params, callback) {
-    // console.log('calling onLoad')
-    debug = env === 'development'
     function render (req, res, next) {
       res.render('admin/plugins/imgbed')
     }
@@ -143,16 +131,12 @@
   }
 
   SocketAdmin.settings.syncImgbed = function (data) {
-    if (debug) {
-      log.info('Imgbed: syncing settings')
-    }
+    log.debug('Imgbed: syncing settings')
     settings.sync(Imgbed.init)
   }
 
   SocketAdmin.settings.clearPostCache = function (data) {
-    if (debug) {
-      log.info('Clearing all posts from cache')
-    }
+    log.debug('Clearing all posts from cache')
     Cache.reset()
     // SocketAdmin.emit('admin.settings.postCacheCleared', {});
   }
