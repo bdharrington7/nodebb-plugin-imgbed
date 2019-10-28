@@ -27,9 +27,7 @@
   },
   "dependencies": {
     "cache-lru": "^1.1.9",
-    "winston": "^3.2.1",
-    "xregexp": "4.2.4",
-    "xregexp-lookbehind": "1.0.x"
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "mocha": "^6.2.2",
@@ -41,6 +39,6 @@
     "compatibility": "1.x.x"
   },
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   }
 }

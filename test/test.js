@@ -159,7 +159,7 @@ describe('parse_to_markdown', function () {
   })
 
   shouldNot.forEach(function (test) {
-    it('shouldn\'t ' + test.desc, function (done) {
+    it('should not ' + test.desc, function (done) {
       var data = createPayload(test.body)
       imgbed.parse(data, function (err, data) {
         testEquals(err, data, test.body) // should be the same
@@ -249,7 +249,7 @@ describe('parse_to_bbcode', function () {
   })
 
   shouldNot.forEach(function (test) {
-    it('shouldn\'t ' + test.desc, function (done) {
+    it('should not ' + test.desc, function (done) {
       var data = createPayload(test.body)
       imgbed.parse(data, function (err, data) {
         testEquals(err, data, test.body) // should be the same
@@ -339,7 +339,7 @@ describe('parse_to_html', function () {
   })
 
   shouldNot.forEach(function (test) {
-    it('shouldn\'t ' + test.desc, function (done) {
+    it('should not ' + test.desc, function (done) {
       var data = createPayload(test.body)
       imgbed.parse(data, function (err, data) {
         testEquals(err, data, test.body) // should be the same
