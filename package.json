@@ -28,9 +28,9 @@
     "url": "https://github.com/bdharrington7/nodebb-plugin-imgbed/issues"
   },
   "dependencies": {
-    "cache-lru": "^1.1.9",
-    "winston": "^3.2.1",
-    "snyk": "^1.317.0"
+    "cache-lru": "^1.1.10",
+    "snyk": "^1.317.0",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "mocha": "^6.2.2",
