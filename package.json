@@ -33,7 +33,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "mocha": "^6.2.2",
+    "mocha": "^8.1.1",
     "mockery": "^2.1.0",
     "rewire": "^4.0.1",
     "standard": "^14.3.1"
