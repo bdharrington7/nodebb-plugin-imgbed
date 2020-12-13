@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "cache-lru": "^1.1.10",
-    "snyk": "^1.317.0",
+    "snyk": "^1.425.4",
     "winston": "^3.2.1"
   },
   "devDependencies": {
