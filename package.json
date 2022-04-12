@@ -30,7 +30,7 @@
   "dependencies": {
     "cache-lru": "^1.1.10",
     "snyk": "^1.667.0",
-    "winston": "^3.2.1"
+    "winston": "^3.3.0"
   },
   "devDependencies": {
     "mocha": "^8.1.1",
